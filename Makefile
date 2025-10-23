@@ -24,3 +24,9 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 # Limpiar
 clean:
 	rm -rf $(BUILD_DIR)
+
+# Ejecutar el programa
+run: $(BUILD_DIR)/$(TARGET)
+	./$(BUILD_DIR)/$(TARGET)
+
+.PHONY: clean run
