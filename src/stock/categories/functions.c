@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../../utils/utils.h"
 
 #define MAXCATEGORIA 30
 #define MAXLINEAS 100
@@ -9,12 +10,6 @@
 
 typedef char tString[MAXCATEGORIA];
 typedef tString tLista[MAXLINEAS];
-
-void mayus(char* str) {
-    for (int i = 0; i < strlen(str); i++) {
-        str[i] = toupper((unsigned char)str[i]);
-    }
-}
 
 int categoriaExiste(const char* nuevaCategoria) {
     FILE* archivo = fopen(ARCHIVO, "r");
