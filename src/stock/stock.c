@@ -4,9 +4,9 @@
 
 void crearMenuStock() {
     printf("\n---| MENU DE STOCK |---\n");
-    printf("[1]. Categorias\n");
-    printf("[3]. Productos\n");
-    printf("[2]. Volver al menu principal\n");
+    printf("[1] Categorias\n");
+    printf("[3] Productos\n");
+    printf("[2] Volver al menu principal\n");
     printf("Opcion: ");
 }
 
