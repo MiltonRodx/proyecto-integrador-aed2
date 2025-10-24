@@ -93,3 +93,80 @@ void leerCategorias() {
         printf("%d. %s\n", i + 1, categorias[i]);
     }
 }
+
+void filtrarCategoriaPorNombre() {
+    tString categoria;
+
+    fflush(stdin);
+    printf("Ingrese el nombre de la categoria: ");
+    scanf("%29[^\n]", categoria);
+
+    if (strlen(categoria) == 0) {
+        printf("Error: La categoria no puede estar vacia.\n");
+        return;
+    }
+
+    mayus(categoria);
+
+    if (!categoriaExiste(categoria)) {
+        printf("La categoria '%s' no existe.\n", categoria);
+        return;
+    }
+
+    printf("La categoria '%s' existe.\n", categoria);
+}
+
+void buscarCategorias(void) {
+    FILE* archivo = fopen(ARCHIVO, "r");
+    if (!archivo) {
+        printf("No se pudo abrir el archivo '%s'.\n", ARCHIVO);
+        return;
+    }
+
+    tString busqueda;
+    printf("Ingrese la categoria a buscar: ");
+    fflush(stdin);
+    scanf(" %29[^\n]", busqueda);
+    
+    if (strlen(busqueda) == 0) {
+        printf("Error: La busqueda no puede estar vacia.\n");
+        fclose(archivo);
+        return;
+    }
+
+    mayus(busqueda);
+
+    tLista categorias;
+    int coincidencias[MAXLINEAS];
+    int count = 0;
+    int totalCoincidencias = 0;
+
+    while (count < MAXLINEAS && fgets(categorias[count], MAXCATEGORIA, archivo)) {
+        categorias[count][strcspn(categorias[count], "\n")] = '\0';
+
+        tString temp;
+        strcpy(temp, categorias[count]);
+        mayus(temp);
+
+        if (strstr(temp, busqueda) != NULL) {
+            coincidencias[totalCoincidencias++] = count;
+        }
+
+        count++;
+    }
+
+    fclose(archivo);
+
+    if (totalCoincidencias == 0) {
+        printf("No se encontraron categorias que contengan '%s'.\n", busqueda);
+    } else {
+        if (totalCoincidencias == 1)
+            printf("\nSe encontró una categoria que contiene '%s':\n", busqueda);
+        else
+            printf("\nSe encontraron %d categorias que contienen '%s':\n", totalCoincidencias, busqueda);
+
+        for (int i = 0; i < totalCoincidencias; i++) {
+            printf("%d. %s\n", i + 1, categorias[coincidencias[i]]);
+        }
+    }
+}

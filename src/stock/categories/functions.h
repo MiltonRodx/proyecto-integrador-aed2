@@ -3,5 +3,7 @@
 
 void leerCategorias();
 void crearCategoria();
+void filtrarCategoriaPorNombre();
+void buscarCategorias();
 
 #endif

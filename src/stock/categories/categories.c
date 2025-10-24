@@ -7,7 +7,7 @@ void crearMenuCategorias() {
     printf("[1] Agregar\n");
     printf("[2] Listar\n");
     printf("[3] Buscar\n");
-    printf("[4] Filtrar\n");
+    printf("[4] Filtrar por nombre\n");
     printf("[5] Eliminar\n");
     printf("[6] Volver al menu principal\n");
     printf("Opcion: ");
@@ -34,6 +34,12 @@ void menuCategorias() {
             break;
         case 2:
             leerCategorias();
+            break;
+        case 3:
+            buscarCategorias();
+            break;
+        case 4:
+            filtrarCategoriaPorNombre();
             break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
