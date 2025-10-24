@@ -1,4 +1,5 @@
 #include "products.h"
+#include "functions.h"
 #include <stdio.h>
 
 void crearMenuProductos() {
@@ -6,7 +7,7 @@ void crearMenuProductos() {
     printf("[1] Agregar\n");
     printf("[2] Listar\n");
     printf("[3] Buscar\n");
-    printf("[4] Filtrar\n");
+    printf("[4] Actualizar\n");
     printf("[5] Eliminar\n");
     printf("[6] Volver al menu principal\n");
     printf("Opcion: ");
@@ -28,7 +29,21 @@ void menuProductos() {
         }
 
         switch (opcion) {
-
+        case 1:
+            crearProducto();
+            break;
+        case 2:
+            leerProductos();
+            break;
+        case 3:
+            menuBusqueda();
+            break;
+        case 4:
+            actualizarProducto();
+            break;
+        case 5:
+            eliminarProducto();
+            break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
         }
