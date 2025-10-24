@@ -38,7 +38,7 @@ int categoriaExiste(const char* nuevaCategoria) {
 void crearCategoria() {
     FILE* archivo = fopen(ARCHIVO, "a");
     if (!archivo) {
-        printf("Error: No se pudo abrir o crear el archivo '%s'.\n", ARCHIVO);
+        printf("Error: No se pudo abrir o crear el archivo.\n");
         return;
     }
 
@@ -69,7 +69,7 @@ void crearCategoria() {
 void leerCategorias() {
     FILE* archivo = fopen(ARCHIVO, "r");
     if (!archivo) {
-        printf("No se pudo abrir el archivo '%s'. Puede que no exista aun.\n", ARCHIVO);
+        printf("No se pudo abrir el archivo. Puede que no exista aun.\n");
         return;
     }
 
@@ -119,7 +119,7 @@ void filtrarCategoriaPorNombre() {
 void buscarCategorias(void) {
     FILE* archivo = fopen(ARCHIVO, "r");
     if (!archivo) {
-        printf("No se pudo abrir el archivo '%s'.\n", ARCHIVO);
+        printf("No se pudo abrir el archivo.\n");
         return;
     }
 
@@ -169,4 +169,69 @@ void buscarCategorias(void) {
             printf("%d. %s\n", i + 1, categorias[coincidencias[i]]);
         }
     }
+}
+
+void eliminarCategoria() {
+    FILE* archivo = fopen(ARCHIVO, "r");
+    if (!archivo) {
+        printf("No se pudo abrir el archivo.\n");
+        return;
+    }
+
+    tLista categorias;
+    int count = 0;
+
+    while (count < MAXLINEAS && fgets(categorias[count], MAXCATEGORIA, archivo)) {
+        categorias[count][strcspn(categorias[count], "\n")] = '\0';
+        count++;
+    }
+    fclose(archivo);
+
+    if (count == 0) {
+        printf("No hay categorias para eliminar.\n");
+        return;
+    }
+
+    // Buscar categoría
+    tString categoria;
+    printf("Ingrese el nombre de la categoria a eliminar: ");
+    fflush(stdin);
+    scanf(" %29[^\n]", categoria);
+    
+    if (strlen(categoria) == 0) {
+        printf("Error: La categoria no puede estar vacia.\n");
+        return;
+    }
+
+    mayus(categoria);
+
+    // Buscar coincidencia exacta
+    int indiceEncontrado = -1;
+    for (int i = 0; i < count; i++) {
+        if (strcmp(categorias[i], categoria) == 0) {
+            indiceEncontrado = i;
+            break;
+        }
+    }
+
+    if (indiceEncontrado == -1) {
+        printf("Error: La categoria '%s' no se encontro.\n", categoria);
+        return;
+    }
+
+    // Reescribir archivo sin la categoría eliminada
+    archivo = fopen(ARCHIVO, "w");
+    if (!archivo) {
+        printf("Error: No se pudo abrir el archivo para escribir.\n");
+        return;
+    }
+
+    for (int i = 0; i < count; i++) {
+        if (i != indiceEncontrado) {
+            fprintf(archivo, "%s\n", categorias[i]);
+        }
+    }
+    fclose(archivo);
+
+    printf("Categoria '%s' eliminada exitosamente.\n", categoria);
 }

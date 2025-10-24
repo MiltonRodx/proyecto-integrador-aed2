@@ -41,6 +41,9 @@ void menuCategorias() {
         case 4:
             filtrarCategoriaPorNombre();
             break;
+        case 5:
+            eliminarCategoria();
+            break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
         }
