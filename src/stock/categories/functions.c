@@ -7,6 +7,9 @@
 #define MAXLINEAS 100
 #define ARCHIVO "build/stock/categories/categories.txt"
 
+typedef char tString[MAXCATEGORIA];
+typedef tString tLista[MAXLINEAS];
+
 void mayus(char* str) {
     for (int i = 0; i < strlen(str); i++) {
         str[i] = toupper((unsigned char)str[i]);
@@ -19,7 +22,7 @@ int categoriaExiste(const char* nuevaCategoria) {
         return 0;
     }
 
-    char linea[MAXCATEGORIA];
+    tString linea;
     while (fgets(linea, MAXCATEGORIA, archivo)) {
         linea[strcspn(linea, "\n")] = 0; // Quitar salto de línea
         if (strcmp(linea, nuevaCategoria) == 0) {
@@ -39,7 +42,7 @@ void crearCategoria() {
         return;
     }
 
-    char nuevaCategoria[MAXCATEGORIA];
+    tString nuevaCategoria;
 
     fflush(stdin);
     printf("Ingrese el nombre de la nueva categoria: ");
@@ -70,7 +73,7 @@ void leerCategorias() {
         return;
     }
 
-    char categorias[MAXLINEAS][MAXCATEGORIA];
+    tLista categorias;
     int count = 0;
 
     while (fgets(categorias[count], MAXCATEGORIA, archivo) && count < MAXLINEAS) {
@@ -85,7 +88,7 @@ void leerCategorias() {
         return;
     }
 
-    printf("Categorías actuales:\n");
+    printf("Categorias actuales:\n");
     for (int i = 0; i < count; i++) {
         printf("%d. %s\n", i + 1, categorias[i]);
     }
