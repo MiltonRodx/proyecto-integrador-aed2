@@ -3,7 +3,7 @@
 
 int categoriaExiste(const char*);
 void leerCategorias();
-void crearCategoria();
+void crearCategorias();
 void filtrarCategoriaPorNombre();
 void buscarCategorias();
 void eliminarCategoria();

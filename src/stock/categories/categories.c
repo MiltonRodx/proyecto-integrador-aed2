@@ -30,7 +30,7 @@ void menuCategorias() {
 
         switch (opcion) {
         case 1:
-            crearCategoria();
+            crearCategorias();
             break;
         case 2:
             leerCategorias();
