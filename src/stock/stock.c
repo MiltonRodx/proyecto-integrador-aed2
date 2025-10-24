@@ -26,7 +26,7 @@ void menuStock() {
 
         switch (opcion) {
         case 1:
-            menuCategories();
+            menuCategorias();
             break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
