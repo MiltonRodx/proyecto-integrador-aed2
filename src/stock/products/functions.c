@@ -220,6 +220,15 @@ void crearProducto() {
     printf("Producto '%s' agregado exitosamente.\n", producto.name);
 }
 
+void crearProductos() {
+  int salir = 0;
+  do {
+    crearProducto();
+    printf("Desea agregar otra producto? 1-Si 2-No: ");
+    scanf("%d", &salir);
+  } while (salir == 1);
+}
+
 void leerProductos() {
     FILE* archivo = fopen(ARCHIVO, "r");
     if (!archivo) {

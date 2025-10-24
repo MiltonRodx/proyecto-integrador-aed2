@@ -30,7 +30,7 @@ void menuProductos() {
 
         switch (opcion) {
         case 1:
-            crearProducto();
+            crearProductos();
             break;
         case 2:
             leerProductos();
@@ -39,7 +39,7 @@ void menuProductos() {
             menuBusqueda();
             break;
         case 4:
-            actualizarProducto();
+            // actualizarProducto();
             break;
         case 5:
             eliminarProducto();
