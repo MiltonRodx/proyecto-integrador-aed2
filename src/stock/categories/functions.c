@@ -15,7 +15,7 @@ typedef struct {
     int tam;
 } tLista;
 
-int escribirArchivo(const char* nombreArchivo, const char* linea) {
+static int escribirArchivo(const char* nombreArchivo, const char* linea) {
     FILE* archivo = fopen(nombreArchivo, "a");
     if (!archivo) {
         return 0;
@@ -27,7 +27,7 @@ int escribirArchivo(const char* nombreArchivo, const char* linea) {
     return 1;
 }
 
-tLista leerArchivo(const char* nombreArchivo) {
+static tLista leerArchivo(const char* nombreArchivo) {
     FILE* archivo = fopen(nombreArchivo, "r");
     if (!archivo) {
         return (tLista){NULL, 0};
