@@ -9,233 +9,209 @@
 #define ARCHIVO "build/stock/categories/categories.txt"
 
 typedef char tString[MAXCATEGORIA];
-typedef tString tLista[MAXLINEAS];
+
+typedef struct {
+    tString* datos;
+    int tam;
+} tLista;
+
+int escribirArchivo(const char* nombreArchivo, const char* linea) {
+    FILE* archivo = fopen(nombreArchivo, "a");
+    if (!archivo) {
+        return 0;
+    }
+
+    fprintf(archivo, "%s\n", linea);
+    fclose(archivo);
+
+    return 1;
+}
+
+tLista leerArchivo(const char* nombreArchivo) {
+    FILE* archivo = fopen(nombreArchivo, "r");
+    if (!archivo) {
+        return (tLista){NULL, 0};
+    }
+
+    tLista lista = {NULL, 0};
+    char linea[MAXCATEGORIA];
+
+    while (fgets(linea, sizeof(linea), archivo)) {
+        linea[strcspn(linea, "\n")] = '\0';
+
+        lista.datos = realloc(lista.datos, (lista.tam + 1) * sizeof(tString));
+        if (!lista.datos) {
+            printf("Error al reasignar memoria");
+            fclose(archivo);
+            return (tLista){NULL, 0};
+        }
+
+        strcpy(lista.datos[lista.tam], linea);
+        lista.tam++;
+    }
+
+    fclose(archivo);
+    return lista;
+}
 
 int categoriaExiste(const char* nuevaCategoria) {
-  FILE* archivo = fopen(ARCHIVO, "r");
-  if (!archivo) {
-    return 0;
-  }
+    tLista categorias = leerArchivo(ARCHIVO);
 
-  tString linea;
-  while (fgets(linea, MAXCATEGORIA, archivo)) {
-    linea[strcspn(linea, "\n")] = 0; // Quitar salto de línea
-    if (strcmp(linea, nuevaCategoria) == 0) {
-      fclose(archivo);
-      return 1;
+    for (int i = 0; i < categorias.tam; i++) {
+        if (strcmp(categorias.datos[i], nuevaCategoria) == 0) {
+            return 1;
+        }
     }
-  }
 
-  fclose(archivo);
-  return 0;
+    free(categorias.datos);
+    return 0;
+}
+
+void ingresarCategoria(tString categoria) {
+    int salir = 0;
+
+    do {
+        fflush(stdin);
+        printf("Ingrese el nombre de la categoria: ");
+        scanf(" %29[^\n]", categoria);
+
+        if (strlen(categoria) == 0) {
+            printf("Error: La categoria no puede estar vacia.\n\n");
+            salir = 0;
+        } else {
+            mayus(categoria);
+            salir = 1;
+        }
+
+    } while (salir == 0);
 }
 
 void crearCategoria() {
-  FILE* archivo = fopen(ARCHIVO, "a");
-  if (!archivo) {
-    printf("Error: No se pudo abrir o crear el archivo.\n");
-    return;
-  }
+    tString nuevaCategoria;
 
-  tString nuevaCategoria;
+    ingresarCategoria(nuevaCategoria);
 
-  fflush(stdin);
-  printf("Ingrese el nombre de la nueva categoria: ");
-  scanf(" %29[^\n]", nuevaCategoria);
+    if (categoriaExiste(nuevaCategoria)) {
+        printf("Error: La categoria '%s' ya existe.\n", nuevaCategoria);
+        return;
+    }
 
-  if (strlen(nuevaCategoria) == 0) {
-    printf("Error: La categoria no puede estar vacia.\n");
-    return;
-  }
-
-  mayus(nuevaCategoria);
-
-  if (categoriaExiste(nuevaCategoria)) {
-    printf("Error: La categoria '%s' ya existe.\n", nuevaCategoria);
-    return;
-  }
-
-  fprintf(archivo, "%s\n", nuevaCategoria);
-  fclose(archivo);
-
-  printf("Categoria '%s' agregada exitosamente.\n", nuevaCategoria);
+    if (escribirArchivo(ARCHIVO, nuevaCategoria)) {
+        printf("Categoria '%s' agregada exitosamente.\n", nuevaCategoria);
+    } else {
+        printf("Error: No se pudo agregar la categoria.\n");
+    }
 }
 
 void crearCategorias() {
-  int salir = 0;
-  do {
-    crearCategoria();
-    printf("Desea agregar otra categoria? 1-Si 2-No: ");
-    scanf("%d", &salir);
-  } while (salir == 1);
+    int salir = 0;
+    do {
+        crearCategoria();
+        printf("Desea agregar otra categoria? 1-Si 2-No: ");
+        scanf("%d", &salir);
+    } while (salir == 1);
 }
 
 void leerCategorias() {
-  FILE* archivo = fopen(ARCHIVO, "r");
-  if (!archivo) {
-    printf("No se pudo abrir el archivo. Puede que no exista aun.\n");
-    return;
-  }
+    tLista categorias = leerArchivo(ARCHIVO);
 
-  tLista categorias;
-  int count = 0;
+    if (!categorias.datos) {
+        printf("No hay categorias en el archivo.\n");
+        return;
+    }
 
-  while (fgets(categorias[count], MAXCATEGORIA, archivo) && count < MAXLINEAS) {
-    categorias[count][strcspn(categorias[count], "\n")] = 0; // quitar salto de línea
-    count++;
-  }
+    printf("Categorias actuales:\n");
 
-  fclose(archivo);
+    for (int i = 0; i < categorias.tam; i++) {
+        printf("%d. %s\n", i + 1, categorias.datos[i]);
+    }
 
-  if (count == 0) {
-    printf("No hay categorias en el archivo.\n");
-    return;
-  }
-
-  printf("Categorias actuales:\n");
-  for (int i = 0; i < count; i++) {
-    printf("%d. %s\n", i + 1, categorias[i]);
-  }
-}
-
-void filtrarCategoriaPorNombre() {
-  tString categoria;
-
-  fflush(stdin);
-  printf("Ingrese el nombre de la categoria: ");
-  scanf("%29[^\n]", categoria);
-
-  if (strlen(categoria) == 0) {
-    printf("Error: La categoria no puede estar vacia.\n");
-    return;
-  }
-
-  mayus(categoria);
-
-  if (!categoriaExiste(categoria)) {
-    printf("La categoria '%s' no existe.\n", categoria);
-    return;
-  }
-
-  printf("La categoria '%s' existe.\n", categoria);
+    free(categorias.datos);
 }
 
 void buscarCategorias(void) {
-  FILE* archivo = fopen(ARCHIVO, "r");
-  if (!archivo) {
-    printf("No se pudo abrir el archivo.\n");
-    return;
-  }
+    tLista categorias = leerArchivo(ARCHIVO);
 
-  tString busqueda;
-  printf("Ingrese la categoria a buscar: ");
-  fflush(stdin);
-  scanf(" %29[^\n]", busqueda);
-
-  if (strlen(busqueda) == 0) {
-    printf("Error: La busqueda no puede estar vacia.\n");
-    fclose(archivo);
-    return;
-  }
-
-  mayus(busqueda);
-
-  tLista categorias;
-  int coincidencias[MAXLINEAS];
-  int count = 0;
-  int totalCoincidencias = 0;
-
-  while (count < MAXLINEAS && fgets(categorias[count], MAXCATEGORIA, archivo)) {
-    categorias[count][strcspn(categorias[count], "\n")] = '\0';
-
-    tString temp;
-    strcpy(temp, categorias[count]);
-    mayus(temp);
-
-    if (strstr(temp, busqueda) != NULL) {
-      coincidencias[totalCoincidencias++] = count;
+    if (!categorias.datos) {
+        printf("No hay categorias en el archivo.\n");
+        return;
     }
 
-    count++;
-  }
+    tString busqueda;
 
-  fclose(archivo);
+    ingresarCategoria(busqueda);
 
-  if (totalCoincidencias == 0) {
-    printf("No se encontraron categorias que contengan '%s'.\n", busqueda);
-  } else {
-    if (totalCoincidencias == 1)
-      printf("\nSe encontró una categoria que contiene '%s':\n", busqueda);
-    else
-      printf("\nSe encontraron %d categorias que contienen '%s':\n", totalCoincidencias, busqueda);
+    int coincidencias[MAXLINEAS];
+    int totalCoincidencias = 0;
 
-    for (int i = 0; i < totalCoincidencias; i++) {
-      printf("%d. %s\n", i + 1, categorias[coincidencias[i]]);
+    // Buscar coincidencias en las categorías
+    for (int i = 0; i < categorias.tam; i++) {
+        if (strstr(categorias.datos[i], busqueda) != NULL) {
+            coincidencias[totalCoincidencias++] = i;
+        }
     }
-  }
+
+    if (totalCoincidencias == 0) {
+        printf("No se encontraron categorias que contengan '%s'.\n", busqueda);
+    } else {
+        if (totalCoincidencias == 1)
+            printf("\nSe encontro 1 categoria que contiene '%s':\n", busqueda);
+        else
+            printf("\nSe encontraron %d categorias que contienen '%s':\n", totalCoincidencias, busqueda);
+
+        for (int i = 0; i < totalCoincidencias; i++) {
+            printf("%d. %s\n", i + 1, categorias.datos[coincidencias[i]]);
+        }
+    }
+
+    free(categorias.datos);
+}
+
+void filtrarCategoriaPorNombre() {
+    tString categoria;
+
+    ingresarCategoria(categoria);
+
+    if (!categoriaExiste(categoria)) {
+        printf("La categoria '%s' no existe.\n", categoria);
+        return;
+    }
+
+    printf("La categoria '%s' existe.\n", categoria);
 }
 
 void eliminarCategoria() {
-  FILE* archivo = fopen(ARCHIVO, "r");
-  if (!archivo) {
-    printf("No se pudo abrir el archivo.\n");
-    return;
-  }
+    tString categoria;
 
-  tLista categorias;
-  int count = 0;
+    ingresarCategoria(categoria);
 
-  while (count < MAXLINEAS && fgets(categorias[count], MAXCATEGORIA, archivo)) {
-    categorias[count][strcspn(categorias[count], "\n")] = '\0';
-    count++;
-  }
-  fclose(archivo);
-
-  if (count == 0) {
-    printf("No hay categorias para eliminar.\n");
-    return;
-  }
-
-  // Buscar categoría
-  tString categoria;
-  printf("Ingrese el nombre de la categoria a eliminar: ");
-  fflush(stdin);
-  scanf(" %29[^\n]", categoria);
-
-  if (strlen(categoria) == 0) {
-    printf("Error: La categoria no puede estar vacia.\n");
-    return;
-  }
-
-  mayus(categoria);
-
-  // Buscar coincidencia exacta
-  int indiceEncontrado = -1;
-  for (int i = 0; i < count; i++) {
-    if (strcmp(categorias[i], categoria) == 0) {
-      indiceEncontrado = i;
-      break;
+    if (!categoriaExiste(categoria)) {
+        printf("La categoria '%s' no existe.\n", categoria);
+        return;
     }
-  }
 
-  if (indiceEncontrado == -1) {
-    printf("Error: La categoria '%s' no se encontro.\n", categoria);
-    return;
-  }
+    tLista categorias = leerArchivo(ARCHIVO);
 
-  // Reescribir archivo sin la categoría eliminada
-  archivo = fopen(ARCHIVO, "w");
-  if (!archivo) {
-    printf("Error: No se pudo abrir el archivo para escribir.\n");
-    return;
-  }
-
-  for (int i = 0; i < count; i++) {
-    if (i != indiceEncontrado) {
-      fprintf(archivo, "%s\n", categorias[i]);
+    if (!categorias.datos) {
+        printf("No hay categorias en el archivo.\n");
+        return;
     }
-  }
-  fclose(archivo);
 
-  printf("Categoria '%s' eliminada exitosamente.\n", categoria);
+    FILE* archivo = fopen(ARCHIVO, "w");
+    if (!archivo) {
+        printf("Error: No se pudo abrir el archivo para escribir.\n");
+        free(categorias.datos);
+        return;
+    }
+
+    for (int i = 0; i < categorias.tam; i++) {
+        if (strcmp(categorias.datos[i], categoria) != 0) {
+            fprintf(archivo, "%s\n", categorias.datos[i]);
+        }
+    }
+
+    fclose(archivo);
+    free(categorias.datos);
+
+    printf("Categoria '%s' eliminada exitosamente.\n", categoria);
 }
