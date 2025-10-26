@@ -16,95 +16,225 @@ typedef struct {
     tString id;
     tString name;
     tString code;
-    tString stock;
-    tString price;
+    int stock;
+    float price;
     tString category;
     tString createdAt;
     tString updatedAt;
 } tProducto;
 
+typedef struct {
+    tProducto* datos;
+    int tam;
+} tLista;
+
+void ingresarCampo(const char* mensaje, tString campo) {
+    printf("%s", mensaje);
+    fflush(stdin);
+    scanf(" %49[^\n]", campo);
+}
+
 void parsearLinea(char* linea, tProducto* producto) {
-    char* token = strtok(linea, ",");
-    if (token)
-        strcpy(producto->id, token);
+    char* valor = strtok(linea, ",");
 
-    token = strtok(NULL, ",");
-    if (token)
-        strcpy(producto->name, token);
+    if (valor)
+        strcpy(producto->id, valor);
 
-    token = strtok(NULL, ",");
-    if (token)
-        strcpy(producto->code, token);
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(producto->name, valor);
 
-    token = strtok(NULL, ",");
-    if (token)
-        strcpy(producto->stock, token);
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(producto->code, valor);
 
-    token = strtok(NULL, ",");
-    if (token)
-        strcpy(producto->price, token);
+    valor = strtok(NULL, ",");
+    if (valor)
+        producto->stock = atoi(valor);
 
-    token = strtok(NULL, ",");
-    if (token)
-        strcpy(producto->category, token);
+    valor = strtok(NULL, ",");
+    if (valor)
+        producto->price = atof(valor);
 
-    token = strtok(NULL, ",");
-    if (token)
-        strcpy(producto->createdAt, token);
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(producto->category, valor);
 
-    token = strtok(NULL, ",");
-    if (token)
-        strcpy(producto->updatedAt, token);
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(producto->createdAt, valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(producto->updatedAt, valor);
 }
 
-int idExiste(const char* id) {
+static tLista leerArchivo() {
     FILE* archivo = fopen(ARCHIVO, "r");
     if (!archivo) {
-        return 0;
+        return (tLista){NULL, 0};
     }
 
+    tLista lista = {NULL, 0};
     char linea[MAXLINEA];
+    int esPrimeraLinea = 1;
+
     while (fgets(linea, MAXLINEA, archivo)) {
         linea[strcspn(linea, "\n")] = '\0';
 
-        tProducto producto;
+        if (esPrimeraLinea) {
+            esPrimeraLinea = 0;
+            if (strstr(linea, "id,") != NULL) {
+                continue;
+            }
+        }
+
+        lista.datos = realloc(lista.datos, (lista.tam + 1) * sizeof(tProducto));
+        if (!lista.datos) {
+            printf("Error al reasignar memoria\n");
+            fclose(archivo);
+            return (tLista){NULL, 0};
+        }
+
         char lineaCopia[MAXLINEA];
         strcpy(lineaCopia, linea);
-        parsearLinea(lineaCopia, &producto);
+        parsearLinea(lineaCopia, &lista.datos[lista.tam]);
+        lista.tam++;
+    }
 
-        if (strcmp(producto.id, id) == 0) {
-            fclose(archivo);
+    fclose(archivo);
+    return lista;
+}
+
+int idExiste(tString valor) {
+    tLista productos = leerArchivo();
+
+    if (!productos.datos) {
+        return 0;
+    }
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, valor) == 0) {
+            free(productos.datos);
             return 1;
         }
     }
 
-    fclose(archivo);
+    free(productos.datos);
     return 0;
 }
 
-int codigoExiste(const char* code) {
-    FILE* archivo = fopen(ARCHIVO, "r");
-    if (!archivo) {
+int codigoExiste(tString valor) {
+    tLista productos = leerArchivo();
+
+    if (!productos.datos) {
         return 0;
     }
 
-    char linea[MAXLINEA];
-    while (fgets(linea, MAXLINEA, archivo)) {
-        linea[strcspn(linea, "\n")] = '\0';
-
-        tProducto producto;
-        char lineaCopia[MAXLINEA];
-        strcpy(lineaCopia, linea);
-        parsearLinea(lineaCopia, &producto);
-
-        if (strcmp(producto.code, code) == 0) {
-            fclose(archivo);
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].code, valor) == 0) {
+            free(productos.datos);
             return 1;
         }
     }
 
-    fclose(archivo);
+    free(productos.datos);
     return 0;
+}
+
+static int escribirArchivo(tLista productos) {
+    FILE* archivo = fopen(ARCHIVO, "w");
+    if (!archivo) {
+        printf("Error: No se pudo abrir el archivo para escribir.\n");
+        return 0;
+    }
+
+    for (int i = 0; i < productos.tam; i++) {
+        fprintf(archivo, "%s,%s,%s,%d,%.2f,%s,%s,%s\n",
+                productos.datos[i].id,
+                productos.datos[i].name,
+                productos.datos[i].code,
+                productos.datos[i].stock,
+                productos.datos[i].price,
+                productos.datos[i].category,
+                productos.datos[i].createdAt,
+                productos.datos[i].updatedAt);
+    }
+
+    fclose(archivo);
+    return 1;
+}
+
+void crearProducto() {
+    tProducto producto;
+
+    ingresarCampo("Ingrese el ID del producto: ", producto.id);
+    if (idExiste(producto.id)) {
+        printf("Error: El ID '%s' ya existe.\n", producto.id);
+        return;
+    }
+
+    ingresarCampo("Ingrese el nombre del producto: ", producto.name);
+    formatearNombre(producto.name);
+
+
+    tString auxCod;
+    strcpy(auxCod, producto.name);
+    formatearCodigo(auxCod);
+    strcpy(producto.code, auxCod);
+
+    if (codigoExiste(producto.code)) {
+        printf("Error: El codigo '%s' ya existe.\n", producto.code);
+        return;
+    }
+
+    printf("Ingrese el stock: ");
+    if (scanf("%d", &producto.stock) != 1 || producto.stock < 0) {
+        printf("Error: Valor incorrecto.\n");
+        return;
+    }
+
+    printf("Ingrese el precio: ");
+    if (scanf("%f", &producto.price) != 1 || producto.price <= 0) {
+        printf("Error: Valor incorrecto.\n");
+        return;
+    }
+
+    ingresarCampo("Ingrese categoria: ", producto.category);
+    mayus(producto.category);
+
+    if (!categoriaExiste(producto.category)) {
+        printf("Error: La categoria '%s' no existe.\n", producto.category);
+        return;
+    }
+
+    obtenerFechaHora(producto.createdAt);
+    strcpy(producto.updatedAt, producto.createdAt);
+
+    tLista productos = leerArchivo();
+    productos.datos = realloc(productos.datos, (productos.tam + 1) * sizeof(tProducto));
+    if (!productos.datos) {
+        printf("Error al agregar el producto.\n");
+        return;
+    }
+
+    productos.datos[productos.tam] = producto;
+    productos.tam++;
+
+    if (escribirArchivo(productos)) {
+        printf("Producto '%s' agregado exitosamente.\n", producto.name);
+    }
+
+    free(productos.datos);
+}
+
+void crearProductos() {
+    int salir = 0;
+    do {
+        crearProducto();
+        printf("Desea agregar otro producto? 1-Si 2-No: ");
+        scanf("%d", &salir);
+    } while (salir == 1);
 }
 
 void imprimirCabecera() {
@@ -113,469 +243,34 @@ void imprimirCabecera() {
     printf("------------------------------------------------------------------------------------------------------------\n");
 }
 
-void imprimirLinea(tProducto pProducto) {
-    printf("%-5s %-20s %-10s %-8s %-10s %-15s %-20s %-20s\n",
-           pProducto.id, pProducto.name, pProducto.code, pProducto.stock,
-           pProducto.price, pProducto.category, pProducto.createdAt, pProducto.updatedAt);
+void imprimirLinea(tProducto producto) {
+    printf("%-5s %-20s %-10s %-8d %-10.2f %-15s %-20s %-20s\n",
+           producto.id, producto.name, producto.code,
+           producto.stock, producto.price,
+           producto.category, producto.createdAt, producto.updatedAt);
 }
 
-void imprimirProductoEncontrado(tProducto pProducto) {
-    printf("\nProducto encontrado:\n");
-    printf("ID: %s\n", pProducto.id);
-    printf("Nombre: %s\n", pProducto.name);
-    printf("Codigo: %s\n", pProducto.code);
-    printf("Stock: %s\n", pProducto.stock);
-    printf("Precio: %s\n", pProducto.price);
-    printf("Categoria: %s\n", pProducto.category);
-    printf("Creado: %s\n", pProducto.createdAt);
-    printf("Actualizado: %s\n", pProducto.updatedAt);
-}
-
-void imprimirMenuBusqueda() {
-    printf("\n---| MENU DE BUSQUEDA |---\n");
-    printf("[1] Por nombre\n");
-    printf("[2] Por id\n");
-    printf("[3] Por codigo\n");
-    printf("[4] Por categoria\n");
-    printf("[5] Por stock\n");
-    printf("[6] Volver al menu principal\n");
-    printf("Opcion: ");
-}
-
-void crearProducto() {
-    FILE* archivo = fopen(ARCHIVO, "a");
-    if (!archivo) {
-        printf("Error: No se pudo abrir o crear el archivo.\n");
+void imprimirProductos(tLista productos) {
+    if (productos.tam == 0) {
+        printf("No hay productos para mostrar.\n");
         return;
     }
-
-    tProducto producto;
-
-    printf("Ingrese ID del producto: ");
-    fflush(stdin);
-    scanf(" %49[^\n]", producto.id);
-
-    if (idExiste(producto.id)) {
-        printf("Error: El ID '%s' ya existe.\n", producto.id);
-        fclose(archivo);
-        return;
-    }
-
-    printf("Ingrese nombre del producto: ");
-    fflush(stdin);
-    scanf(" %49[^\n]", producto.name);
-    formatearNombre(producto.name);
-
-    // Crear código
-    tString AUXCOD;
-    strcpy(AUXCOD, producto.name);
-    formatearCodigo(AUXCOD);
-    strcpy(producto.code, AUXCOD);
-
-    if (codigoExiste(producto.code)) {
-        printf("Error: El codigo '%s' ya existe.\n", producto.code);
-        fclose(archivo);
-        return;
-    }
-
-    printf("Ingrese stock: ");
-    fflush(stdin);
-    scanf(" %49[^\n]", producto.stock);
-
-    if (producto.stock < 0) {
-        printf("Error: El stock no debe ser menor que 0.\n");
-        fclose(archivo);
-        return;
-    }
-
-    printf("Ingrese precio: ");
-    fflush(stdin);
-    scanf(" %49[^\n]", producto.price);
-
-    if (producto.price < 0) {
-        printf("Error: El precio no debe ser menor que 0.\n");
-        fclose(archivo);
-        return;
-    }
-
-    printf("Ingrese categoria: ");
-    fflush(stdin);
-    scanf(" %49[^\n]", producto.category);
-    mayus(producto.category);
-
-    if (!categoriaExiste(producto.category)) {
-        printf("Error: La categoria '%s' no existe.\n", producto.category);
-        fclose(archivo);
-        return;
-    }
-
-    obtenerFechaHora(producto.createdAt);
-    strcpy(producto.updatedAt, producto.createdAt);
-
-    fprintf(archivo, "%s,%s,%s,%s,%s,%s,%s,%s\n",
-            producto.id, producto.name, producto.code, producto.stock,
-            producto.price, producto.category, producto.createdAt, producto.updatedAt);
-
-    fclose(archivo);
-    printf("Producto '%s' agregado exitosamente.\n", producto.name);
-}
-
-void crearProductos() {
-  int salir = 0;
-  do {
-    crearProducto();
-    printf("Desea agregar otra producto? 1-Si 2-No: ");
-    scanf("%d", &salir);
-  } while (salir == 1);
-}
-
-void leerProductos() {
-    FILE* archivo = fopen(ARCHIVO, "r");
-    if (!archivo) {
-        printf("Error: No se pudo abrir o crear el archivo.\n");
-        return;
-    }
-
-    char linea[MAXLINEA];
-    int count = 0;
 
     imprimirCabecera();
-
-    while (fgets(linea, MAXLINEA, archivo)) {
-        linea[strcspn(linea, "\n")] = '\0';
-
-        tProducto producto;
-        char lineaCopia[MAXLINEA];
-        strcpy(lineaCopia, linea);
-        parsearLinea(lineaCopia, &producto);
-
-        imprimirLinea(producto);
-        count++;
+    for (int i = 0; i < productos.tam; i++) {
+        imprimirLinea(productos.datos[i]);
     }
-
-    fclose(archivo);
-
-    if (count == 0) {
-        printf("No hay productos en el archivo.\n");
-    } else {
-        printf("\nTotal de productos: %d\n", count);
-    }
+    printf("\nTotal de productos: %d\n", productos.tam);
 }
 
-void buscarProductosPorNombre() {
-    FILE* archivo = fopen(ARCHIVO, "r");
-    if (!archivo) {
-        printf("No se pudo abrir el archivo.\n");
+void obtenerProductos() {
+    tLista productos = leerArchivo();
+
+    if (!productos.datos) {
+        printf("Error: No se pudo abrir el archivo, tal vez no exista aun.\n");
         return;
     }
 
-    tString busqueda;
-    printf("Ingrese el producto a buscar: ");
-    fflush(stdin);
-    scanf(" %49[^\n]", busqueda);
-
-    if (strlen(busqueda) == 0) {
-        printf("Error: La busqueda no puede estar vacia.\n");
-        fclose(archivo);
-        return;
-    }
-
-    mayus(busqueda);
-
-    char linea[MAXLINEA];
-    int totalCoincidencias = 0;
-
-    imprimirCabecera();
-
-    while (fgets(linea, MAXLINEA, archivo)) {
-        linea[strcspn(linea, "\n")] = '\0';
-
-        tProducto producto;
-        char lineaCopia[MAXLINEA];
-        strcpy(lineaCopia, linea);
-        parsearLinea(lineaCopia, &producto);
-
-        tString nombreMayus;
-        strcpy(nombreMayus, producto.name);
-        mayus(nombreMayus);
-
-        if (strstr(nombreMayus, busqueda) != NULL) {
-            imprimirLinea(producto);
-            totalCoincidencias++;
-        }
-    }
-
-    fclose(archivo);
-
-    if (totalCoincidencias == 0) {
-        printf("No se encontraron productos que contengan '%s'.\n", busqueda);
-    } else {
-        printf("\nTotal de coincidencias: %d\n", totalCoincidencias);
-    }
-}
-
-void buscarProductoPorID() {
-    FILE* archivo = fopen(ARCHIVO, "r");
-    if (!archivo) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-
-    tString id;
-    printf("Ingrese el ID del producto: ");
-    fflush(stdin);
-    scanf(" %49[^\n]", id);
-
-    char linea[MAXLINEA];
-    int encontrado = 0;
-
-    while (fgets(linea, MAXLINEA, archivo)) {
-        linea[strcspn(linea, "\n")] = '\0';
-
-        tProducto producto;
-        char lineaCopia[MAXLINEA];
-        strcpy(lineaCopia, linea);
-        parsearLinea(lineaCopia, &producto);
-
-        if (strcmp(producto.id, id) == 0) {
-            imprimirProductoEncontrado(producto);
-            encontrado = 1;
-            break;
-        }
-    }
-
-    fclose(archivo);
-
-    if (!encontrado) {
-        printf("Error: El producto con ID '%s' no se encontro.\n", id);
-    }
-}
-
-void buscarProductoPorCodigo() {
-    FILE* archivo = fopen(ARCHIVO, "r");
-    if (!archivo) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-
-    tString codigo;
-    printf("Ingrese el codigo del producto: ");
-    fflush(stdin);
-    scanf(" %49[^\n]", codigo);
-
-    char linea[MAXLINEA];
-    int encontrado = 0;
-
-    while (fgets(linea, MAXLINEA, archivo)) {
-        linea[strcspn(linea, "\n")] = '\0';
-
-        tProducto producto;
-        char lineaCopia[MAXLINEA];
-        strcpy(lineaCopia, linea);
-        parsearLinea(lineaCopia, &producto);
-
-        if (strcmp(producto.code, codigo) == 0) {
-            imprimirProductoEncontrado(producto);
-            encontrado = 1;
-            break;
-        }
-    }
-
-    fclose(archivo);
-
-    if (!encontrado) {
-        printf("Error: El producto con codigo '%s' no se encontro.\n", codigo);
-    }
-}
-
-void buscarPorCategoria() {
-    FILE* archivo = fopen(ARCHIVO, "r");
-    if (!archivo) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-
-    tString categoria;
-    printf("Ingrese la categoria: ");
-    fflush(stdin);
-    scanf(" %49[^\n]", categoria);
-    mayus(categoria);
-
-    if (!categoriaExiste(categoria)) {
-        printf("Error: La categoria '%s' no existe.\n", categoria);
-        fclose(archivo);
-        return;
-    }
-
-    char linea[MAXLINEA];
-    int totalCoincidencias = 0;
-
-    imprimirCabecera();
-
-    while (fgets(linea, MAXLINEA, archivo)) {
-        linea[strcspn(linea, "\n")] = '\0';
-
-        tProducto producto;
-        char lineaCopia[MAXLINEA];
-        strcpy(lineaCopia, linea);
-        parsearLinea(lineaCopia, &producto);
-
-        if (strcmp(producto.category, categoria) == 0) {
-            imprimirLinea(producto);
-            totalCoincidencias++;
-        }
-    }
-
-    fclose(archivo);
-
-    if (totalCoincidencias == 0) {
-        printf("No se encontraron productos de la categoria '%s'.\n", categoria);
-    } else {
-        printf("\nTotal de productos: %d\n", totalCoincidencias);
-    }
-}
-
-void buscarProductoPorStock() {
-    FILE* archivo = fopen(ARCHIVO, "r");
-    if (!archivo) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-
-    int stock;
-    printf("Ingrese el stock del producto: ");
-    int resultado = scanf("%d", &stock);
-
-    if (resultado != 1) {
-        printf("Entrada invalida. Por favor ingrese un numero.\n");
-        return;
-    }
-
-    char linea[MAXLINEA];
-    int totalCoincidencias = 0;
-
-    imprimirCabecera();
-
-    while (fgets(linea, MAXLINEA, archivo)) {
-        linea[strcspn(linea, "\n")] = '\0';
-
-        tProducto producto;
-        char lineaCopia[MAXLINEA];
-        strcpy(lineaCopia, linea);
-        parsearLinea(lineaCopia, &producto);
-
-        if (atoi(producto.stock) == stock) {
-            imprimirLinea(producto);
-            totalCoincidencias++;
-        }
-    }
-
-    fclose(archivo);
-
-    if (totalCoincidencias == 0) {
-        printf("No se encontraron productos con stock: %d.\n", stock);
-    } else {
-        printf("\nTotal de productos: %d\n", totalCoincidencias);
-    }
-}
-
-void menuBusqueda() {
-    int opcion;
-    int resultado;
-
-    do {
-        imprimirMenuBusqueda();
-
-        resultado = scanf("%d", &opcion);
-
-        if (resultado != 1) {
-            printf("Entrada invalida. Por favor ingrese un numero.\n");
-            fflush(stdin);
-            continue;
-        }
-
-        switch (opcion) {
-        case 1:
-            buscarProductosPorNombre();
-            break;
-        case 2:
-            buscarProductoPorID();
-            break;
-        case 3:
-            buscarProductoPorCodigo();
-            break;
-        case 4:
-            buscarPorCategoria();
-            break;
-        case 5:
-            buscarProductoPorStock();
-            break;
-        default:
-            printf("Opcion invalida. Intente nuevamente.\n");
-        }
-    } while (opcion != 6);
-}
-
-void eliminarProducto() {
-    FILE* archivo = fopen(ARCHIVO, "r");
-    if (!archivo) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-
-    char lineas[MAXREGISTROS][MAXLINEA];
-    int count = 0;
-
-    while (count < MAXREGISTROS && fgets(lineas[count], MAXLINEA, archivo)) {
-        lineas[count][strcspn(lineas[count], "\n")] = '\0';
-        count++;
-    }
-    fclose(archivo);
-
-    if (count == 0) {
-        printf("No hay productos para eliminar.\n");
-        return;
-    }
-
-    tString id;
-    printf("Ingrese el ID del producto a eliminar: ");
-    fflush(stdin);
-    scanf(" %49[^\n]", id);
-
-    int indiceEncontrado = -1;
-    tProducto productoEliminar;
-
-    for (int i = 0; i < count; i++) {
-        tProducto producto;
-        char lineaCopia[MAXLINEA];
-        strcpy(lineaCopia, lineas[i]);
-        parsearLinea(lineaCopia, &producto);
-
-        if (strcmp(producto.id, id) == 0) {
-            indiceEncontrado = i;
-            productoEliminar = producto;
-            break;
-        }
-    }
-
-    if (indiceEncontrado == -1) {
-        printf("Error: El producto con ID '%s' no se encontro.\n", id);
-        return;
-    }
-
-    archivo = fopen(ARCHIVO, "w");
-    if (!archivo) {
-        printf("Error: No se pudo abrir el archivo para escribir.\n");
-        return;
-    }
-
-    for (int i = 0; i < count; i++) {
-        if (i != indiceEncontrado) {
-            fprintf(archivo, "%s\n", lineas[i]);
-        }
-    }
-    fclose(archivo);
-
-    printf("Producto '%s' (ID: %s) eliminado exitosamente.\n",
-           productoEliminar.name, productoEliminar.id);
+    imprimirProductos(productos);
+    free(productos.datos);
 }

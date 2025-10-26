@@ -2,9 +2,9 @@
 #define FUNCTIONS_CATEGORIES_H
 
 void crearProductos();
-void leerProductos();
-void menuBusqueda();
+void obtenerProductos();
+// void menuBusqueda();
 // void actualizarProducto();
-void eliminarProducto();
+// void eliminarProducto();
 
 #endif

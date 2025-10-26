@@ -33,16 +33,16 @@ void menuProductos() {
             crearProductos();
             break;
         case 2:
-            leerProductos();
+            obtenerProductos();
             break;
         case 3:
-            menuBusqueda();
+            // menuBusqueda();
             break;
         case 4:
             // actualizarProducto();
             break;
         case 5:
-            eliminarProducto();
+            // eliminarProducto();
             break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
