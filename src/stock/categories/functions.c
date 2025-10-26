@@ -180,6 +180,54 @@ void filtrarCategoriaPorNombre() {
     printf("La categoria '%s' existe.\n", categoria);
 }
 
+void editarCategoria() {
+    tLista categorias = leerArchivo(ARCHIVO);
+
+    if (!categorias.datos) {
+        printf("No hay categorias en el archivo.\n");
+        return;
+    }
+
+    tString categoriaVieja;
+    printf("[Antigua] ");
+    ingresarCategoria(categoriaVieja);
+
+    if (!categoriaExiste(categoriaVieja)) {
+        printf("La categoria '%s' no existe.\n", categoriaVieja);
+        return;
+    }
+
+    tString categoriaNueva;
+
+    printf("[Nueva] ");
+    ingresarCategoria(categoriaNueva);
+
+    if (categoriaExiste(categoriaNueva)) {
+        printf("Error: La categoria '%s' ya existe.\n", categoriaNueva);
+        return;
+    }
+
+    FILE* archivo = fopen(ARCHIVO, "w");
+    if (!archivo) {
+        printf("Error: No se pudo abrir el archivo para escribir.\n");
+        free(categorias.datos);
+        return;
+    }
+
+    for (int i = 0; i < categorias.tam; i++) {
+        if (strcmp(categorias.datos[i], categoriaVieja) == 0) {
+            fprintf(archivo, "%s\n", categoriaNueva);
+        } else {
+            fprintf(archivo, "%s\n", categorias.datos[i]);
+        }
+    }
+
+    fclose(archivo);
+    free(categorias.datos);
+
+    printf("Categoria '%s' editada a '%s' exitosamente.\n", categoriaVieja, categoriaNueva);
+}
+
 void eliminarCategoria() {
     tString categoria;
 

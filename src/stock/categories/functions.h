@@ -6,6 +6,7 @@ void leerCategorias();
 void crearCategorias();
 void filtrarCategoriaPorNombre();
 void buscarCategorias();
+void editarCategoria();
 void eliminarCategoria();
 
 #endif
