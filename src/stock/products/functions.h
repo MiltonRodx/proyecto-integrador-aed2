@@ -4,7 +4,7 @@
 void crearProductos();
 void obtenerProductos();
 void menuBusqueda();
-// void actualizarProducto();
+void actualizarProducto();
 void eliminarProducto();
 
 #endif

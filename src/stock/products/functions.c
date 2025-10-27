@@ -481,6 +481,130 @@ void menuBusqueda() {
     } while (opcion != 6);
 }
 
+void actualizarProducto() {
+    tLista productos = leerArchivo();
+
+    if (!productos.datos || productos.tam == 0) {
+        printf("No hay productos para editar.\n");
+        free(productos.datos);
+        return;
+    }
+
+    tString id;
+    ingresarCampo("Ingrese el id del producto a editar: ", id);
+
+    int indiceEncontrado = -1;
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, id) == 0) {
+            indiceEncontrado = i;
+            break;
+        }
+    }
+
+    if (indiceEncontrado == -1) {
+        printf("Error: El producto con ID '%s' no se encontró.\n", id);
+        free(productos.datos);
+        return;
+    }
+
+    printf("\nProducto actual:\n");
+    imprimirProductoDetallado(productos.datos[indiceEncontrado]);
+
+    tProducto productoEditado = productos.datos[indiceEncontrado];
+
+    int opcion;
+    do {
+        printf("\n---| CAMPOS A EDITAR |---\n");
+        printf("[1] Nombre\n");
+        printf("[2] Stock\n");
+        printf("[3] Precio\n");
+        printf("[4] Categoria\n");
+        printf("[5] Terminar edicion\n");
+        printf("Opcion: ");
+        if (scanf("%d", &opcion) != 1) {
+            printf("Entrada invalida. Por favor ingrese un numero.\n");
+            fflush(stdin);
+            continue;
+        }
+
+        switch (opcion) {
+        case 1:
+            ingresarCampo("Ingrese el nuevo nombre del producto: ", productoEditado.name);
+            formatearNombre(productoEditado.name);
+
+            tString auxCod;
+            strcpy(auxCod, productoEditado.name);
+            formatearCodigo(auxCod);
+
+            if (codigoExiste(auxCod) && strcmp(auxCod, productoEditado.code) != 0) {
+                printf("Error: El codigo '%s' ya existe. Intente con otro nombre.\n", auxCod);
+                strcpy(productoEditado.name, productos.datos[indiceEncontrado].name);
+            } else {
+                strcpy(productoEditado.code, auxCod);
+                printf("Nombre y codigo actualizados correctamente.\n");
+            }
+            break;
+
+        case 2:
+            printf("Ingrese el nuevo stock: ");
+            int nuevoStock;
+            if (scanf("%d", &nuevoStock) != 1 || nuevoStock < 0) {
+                printf("Error: Valor incorrecto.\n");
+            } else {
+                productoEditado.stock = nuevoStock;
+                printf("Stock actualizado correctamente.\n");
+            }
+            break;
+
+        case 3:
+            printf("Ingrese el nuevo precio: ");
+            float nuevoPrecio;
+            if (scanf("%f", &nuevoPrecio) != 1 || nuevoPrecio <= 0) {
+                printf("Error: Valor incorrecto.\n");
+            } else {
+                productoEditado.price = nuevoPrecio;
+                printf("Precio actualizado correctamente.\n");
+            }
+            break;
+
+        case 4:
+            ingresarCampo("Ingrese la nueva categoria: ", productoEditado.category);
+            mayus(productoEditado.category);
+            if (!categoriaExiste(productoEditado.category)) {
+                printf("Error: La categoria '%s' no existe.\n", productoEditado.category);
+                strcpy(productoEditado.category, productos.datos[indiceEncontrado].category);
+            } else {
+                printf("Categoria actualizada correctamente.\n");
+            }
+            break;
+
+        case 5:
+            break;
+
+        default:
+            printf("Opcion invalida. Intente nuevamente.\n");
+        }
+
+        if (opcion != 5) {
+            printf("\nProducto actualizado (temporal):\n");
+            imprimirProductoDetallado(productoEditado);
+        }
+
+    } while (opcion != 5);
+
+    obtenerFechaHora(productoEditado.updatedAt);
+
+    productos.datos[indiceEncontrado] = productoEditado;
+
+    if (escribirArchivo(productos)) {
+        printf("\nEl producto con id: %s fue actualizado exitosamente.\n", id);
+    } else {
+        printf("\nError al guardar los cambios en el archivo.\n");
+    }
+
+    free(productos.datos);
+}
+
 void eliminarProducto() {
     tString id;
     ingresarCampo("Ingrese el ID del producto a eliminar: ", id);
@@ -509,7 +633,6 @@ void eliminarProducto() {
         return;
     }
 
-    // Crear nueva lista sin el producto eliminado
     tLista nuevaLista = {NULL, 0};
     nuevaLista.datos = malloc((productos.tam - 1) * sizeof(tProducto));
 

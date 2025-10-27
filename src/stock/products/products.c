@@ -39,7 +39,7 @@ void menuProductos() {
             menuBusqueda();
             break;
         case 4:
-            // actualizarProducto();
+            actualizarProducto();
             break;
         case 5:
             eliminarProducto();

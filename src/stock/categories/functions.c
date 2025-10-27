@@ -144,7 +144,6 @@ void buscarCategorias(void) {
     int coincidencias[MAXLINEAS];
     int totalCoincidencias = 0;
 
-    // Buscar coincidencias en las categorías
     for (int i = 0; i < categorias.tam; i++) {
         if (strstr(categorias.datos[i], busqueda) != NULL) {
             coincidencias[totalCoincidencias++] = i;
