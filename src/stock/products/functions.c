@@ -480,3 +480,56 @@ void menuBusqueda() {
         }
     } while (opcion != 6);
 }
+
+void eliminarProducto() {
+    tString id;
+    ingresarCampo("Ingrese el ID del producto a eliminar: ", id);
+
+    tLista productos = leerArchivo();
+
+    if (!productos.datos || productos.tam == 0) {
+        printf("No hay productos para eliminar.\n");
+        return;
+    }
+
+    int indiceEncontrado = -1;
+    tProducto productoEliminar;
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, id) == 0) {
+            indiceEncontrado = i;
+            productoEliminar = productos.datos[i];
+            break;
+        }
+    }
+
+    if (indiceEncontrado == -1) {
+        printf("Error: El producto con id: %s no se encontro.\n", id);
+        free(productos.datos);
+        return;
+    }
+
+    // Crear nueva lista sin el producto eliminado
+    tLista nuevaLista = {NULL, 0};
+    nuevaLista.datos = malloc((productos.tam - 1) * sizeof(tProducto));
+
+    if (!nuevaLista.datos && productos.tam > 1) {
+        printf("Error de memoria.\n");
+        free(productos.datos);
+        return;
+    }
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (i != indiceEncontrado) {
+            nuevaLista.datos[nuevaLista.tam] = productos.datos[i];
+            nuevaLista.tam++;
+        }
+    }
+
+    if (escribirArchivo(nuevaLista)) {
+        printf("El producto con el id: %s, fue eliminado con exito.\n", productoEliminar.id);
+    }
+
+    free(productos.datos);
+    free(nuevaLista.datos);
+}

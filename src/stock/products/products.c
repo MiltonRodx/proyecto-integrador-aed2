@@ -42,7 +42,7 @@ void menuProductos() {
             // actualizarProducto();
             break;
         case 5:
-            // eliminarProducto();
+            eliminarProducto();
             break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");

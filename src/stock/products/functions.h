@@ -5,6 +5,6 @@ void crearProductos();
 void obtenerProductos();
 void menuBusqueda();
 // void actualizarProducto();
-// void eliminarProducto();
+void eliminarProducto();
 
 #endif
