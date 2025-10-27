@@ -36,7 +36,7 @@ void menuProductos() {
             obtenerProductos();
             break;
         case 3:
-            // menuBusqueda();
+            menuBusqueda();
             break;
         case 4:
             // actualizarProducto();
