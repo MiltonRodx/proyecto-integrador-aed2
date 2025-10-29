@@ -440,16 +440,17 @@ void imprimirMenuBusqueda() {
     printf("[3] Por nombre\n");
     printf("[4] Por categoria\n");
     printf("[5] Por stock\n");
-    printf("[6] Volver al menu principal\n");
+    printf("[x] Volver al menu principal\n");
     printf("Opcion: ");
 }
 
 void menuBusqueda() {
-    int opcion, resultado;
+    char opcion;
+    int resultado;
 
     do {
         imprimirMenuBusqueda();
-        resultado = scanf("%d", &opcion);
+        resultado = scanf(" %c", &opcion);
 
         if (resultado != 1) {
             printf("Entrada invalida. Por favor ingrese un numero.\n");
@@ -458,27 +459,25 @@ void menuBusqueda() {
         }
 
         switch (opcion) {
-        case 1:
+        case '1':
             filtrarProductoPorId();
             break;
-        case 2:
+        case '2':
             filtrarProductoPorCodigo();
             break;
-        case 3:
+        case '3':
             buscarProductosPorNombre();
             break;
-        case 4:
+        case '4':
             filtrarProductoPorCategoria();
             break;
-        case 5:
+        case '5':
             filtrarProductoPorStock();
-            break;
-        case 6:
             break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
         }
-    } while (opcion != 6);
+    } while (opcion != 'x');
 }
 
 void actualizarProducto() {
@@ -512,23 +511,23 @@ void actualizarProducto() {
 
     tProducto productoEditado = productos.datos[indiceEncontrado];
 
-    int opcion;
+    char opcion;
     do {
         printf("\n---| CAMPOS A EDITAR |---\n");
         printf("[1] Nombre\n");
         printf("[2] Stock\n");
         printf("[3] Precio\n");
         printf("[4] Categoria\n");
-        printf("[5] Terminar edicion\n");
+        printf("[x] Terminar edicion\n");
         printf("Opcion: ");
-        if (scanf("%d", &opcion) != 1) {
+        if (scanf(" %c", &opcion) != 1) {
             printf("Entrada invalida. Por favor ingrese un numero.\n");
             fflush(stdin);
             continue;
         }
 
         switch (opcion) {
-        case 1:
+        case '1':
             ingresarCampo("Ingrese el nuevo nombre del producto: ", productoEditado.name);
             formatearNombre(productoEditado.name);
 
@@ -545,7 +544,7 @@ void actualizarProducto() {
             }
             break;
 
-        case 2:
+        case '2':
             printf("Ingrese el nuevo stock: ");
             int nuevoStock;
             if (scanf("%d", &nuevoStock) != 1 || nuevoStock < 0) {
@@ -556,7 +555,7 @@ void actualizarProducto() {
             }
             break;
 
-        case 3:
+        case '3':
             printf("Ingrese el nuevo precio: ");
             float nuevoPrecio;
             if (scanf("%f", &nuevoPrecio) != 1 || nuevoPrecio <= 0) {
@@ -567,7 +566,7 @@ void actualizarProducto() {
             }
             break;
 
-        case 4:
+        case '4':
             ingresarCampo("Ingrese la nueva categoria: ", productoEditado.category);
             mayus(productoEditado.category);
             if (!categoriaExiste(productoEditado.category)) {
@@ -578,7 +577,7 @@ void actualizarProducto() {
             }
             break;
 
-        case 5:
+        case '5':
             break;
 
         default:
@@ -590,7 +589,7 @@ void actualizarProducto() {
             imprimirProductoDetallado(productoEditado);
         }
 
-    } while (opcion != 5);
+    } while (opcion != 'x');
 
     obtenerFechaHora(productoEditado.updatedAt);
 

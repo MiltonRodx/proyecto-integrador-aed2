@@ -9,18 +9,18 @@ void crearMenuProductos() {
     printf("[3] Buscar\n");
     printf("[4] Actualizar\n");
     printf("[5] Eliminar\n");
-    printf("[6] Volver al menu principal\n");
+    printf("[x] Volver al menu principal\n");
     printf("Opcion: ");
 }
 
 void menuProductos() {
-    int opcion;
+    char opcion;
     int resultado;
 
     do {
         crearMenuProductos();
 
-        resultado = scanf("%d", &opcion);
+        resultado = scanf(" %c", &opcion);
 
         if (resultado != 1) {
             printf("Entrada invalida. Por favor ingrese un numero.\n");
@@ -29,23 +29,23 @@ void menuProductos() {
         }
 
         switch (opcion) {
-        case 1:
+        case '1':
             crearProductos();
             break;
-        case 2:
+        case '2':
             obtenerProductos();
             break;
-        case 3:
+        case '3':
             menuBusqueda();
             break;
-        case 4:
+        case '4':
             actualizarProducto();
             break;
-        case 5:
+        case '5':
             eliminarProducto();
             break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
         }
-    } while (opcion != 6);
+    } while (opcion != 'x');
 }

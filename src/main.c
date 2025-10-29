@@ -1,42 +1,51 @@
 #include "stock/stock.h"
+#include "users/users.h"
+#include "users/auth/auth.h"
 #include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+
 
 void crearMenuPrincipal() {
     printf("\n===| MENU PRINCIPAL |===\n");
     printf("[1] Users\n");
     printf("[2] Stock\n");
-    printf("[4] Cash\n");
-    printf("[5] Salir\n");
+    printf("[3] Cash\n");
+    printf("[x] Salir\n");
     printf("Opcion: ");
 }
 
 int main() {
-    int opcion;
-    int resultado;
+    login();
+
+    if (!estaLoggeado){
+        return 0;
+    }
+
+    char opcion;
 
     do {
         crearMenuPrincipal();
 
-        resultado = scanf("%d", &opcion);
-
-        if (resultado != 1) {
-            printf("Entrada invalida. Por favor ingrese un numero.\n");
-            fflush(stdin);
-            continue;
-        }
+        scanf(" %c", &opcion);
+        opcion = tolower(opcion);
 
         switch (opcion) {
-        case 2:
+        case '1':
+            menuUsuarios();
+            break;
+        case '2':
             menuStock();
             break;
-        case 5:
+        case 'x':
             printf("Saliendo del programa...\n");
             break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
+            break;
         }
 
-    } while (opcion != 5);
-
+    } while (opcion != 'x');
+    
     return 0;
 }
