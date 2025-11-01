@@ -482,6 +482,17 @@ void menuBusquedaProductos() {
     } while (opcion != 'x');
 }
 
+static void crearMenuEdicionProducto() {
+    printf("\n---| CAMPOS A EDITAR |---\n");
+    printf("[1] Nombre\n");
+    printf("[2] Stock\n");
+    printf("[3] Precio\n");
+    printf("[4] Categoria\n");
+    printf("[x] Guardar cambios\n");
+    printf("[c] Cancelar edicion\n");
+    printf("Seleccione una opcion: ");
+}
+
 void actualizarProducto() {
     tLista productos = leerArchivo();
 
@@ -492,7 +503,8 @@ void actualizarProducto() {
     }
 
     tString id;
-    ingresarCampo("Ingrese el id del producto a editar: ", id);
+    ingresarCampo("Ingrese el ID del producto a editar: ", id);
+    mayus(id);
 
     int indiceEncontrado = -1;
     for (int i = 0; i < productos.tam; i++) {
@@ -514,99 +526,124 @@ void actualizarProducto() {
     tProducto productoEditado = productos.datos[indiceEncontrado];
 
     char opcion;
+    int editado = 0;
     do {
-        printf("\n---| CAMPOS A EDITAR |---\n");
-        printf("[1] Nombre\n");
-        printf("[2] Stock\n");
-        printf("[3] Precio\n");
-        printf("[4] Categoria\n");
-        printf("[x] Terminar edicion\n");
-        printf("Seleccione una opcion: ");
-        
+        crearMenuEdicionProducto();
+
         if (scanf(" %c", &opcion) != 1) {
-            printf("Entrada invalida. Por favor ingrese un numero.\n");
+            printf("Entrada invalida.\n");
             fflush(stdin);
             continue;
         }
 
+        opcion = tolower(opcion);
+
         switch (opcion) {
-        case '1':
-            ingresarCampo("Ingrese el nuevo nombre del producto: ", productoEditado.name);
-            formatearNombre(productoEditado.name);
+        case '1': {
+            tString nuevoNombre;
+            do {
+                ingresarCampo("Ingrese el nuevo nombre del producto: ", nuevoNombre);
+                formatearNombre(nuevoNombre);
 
-            tString auxCod;
-            strcpy(auxCod, productoEditado.name);
-            formatearCodigo(auxCod);
+                tString auxCod;
+                strcpy(auxCod, nuevoNombre);
+                formatearCodigo(auxCod);
 
-            if (codigoExiste(auxCod) && strcmp(auxCod, productoEditado.code) != 0) {
-                printf("Error: El codigo '%s' ya existe. Intente con otro nombre.\n", auxCod);
-                strcpy(productoEditado.name, productos.datos[indiceEncontrado].name);
-            } else {
-                strcpy(productoEditado.code, auxCod);
-                printf("Nombre y codigo actualizados correctamente.\n");
-            }
+                if (codigoExiste(auxCod) && strcmp(auxCod, productoEditado.code) != 0) {
+                    printf("Error: El codigo '%s' ya existe. Intente con otro nombre.\n", auxCod);
+                } else {
+                    strcpy(productoEditado.name, nuevoNombre);
+                    strcpy(productoEditado.code, auxCod);
+                    printf("Nombre y codigo actualizados correctamente.\n");
+                    editado = 1;
+                    break;
+                }
+            } while (1);
             break;
+        }
 
-        case '2':
-            printf("Ingrese el nuevo stock: ");
+        case '2': {
             int nuevoStock;
+            printf("Ingrese el nuevo stock: ");
             if (scanf("%d", &nuevoStock) != 1 || nuevoStock < 0) {
                 printf("Error: Valor incorrecto.\n");
+                fflush(stdin);
             } else {
                 productoEditado.stock = nuevoStock;
                 printf("Stock actualizado correctamente.\n");
+                editado = 1;
             }
             break;
+        }
 
-        case '3':
-            printf("Ingrese el nuevo precio: ");
+        case '3': {
             float nuevoPrecio;
+            printf("Ingrese el nuevo precio: ");
             if (scanf("%f", &nuevoPrecio) != 1 || nuevoPrecio <= 0) {
                 printf("Error: Valor incorrecto.\n");
+                fflush(stdin);
             } else {
                 productoEditado.price = nuevoPrecio;
                 printf("Precio actualizado correctamente.\n");
+                editado = 1;
             }
             break;
+        }
 
-        case '4':
-            ingresarCampo("Ingrese la nueva categoria: ", productoEditado.category);
-            mayus(productoEditado.category);
-            if (!categoriaExiste(productoEditado.category)) {
-                printf("Error: La categoria '%s' no existe.\n", productoEditado.category);
-                strcpy(productoEditado.category, productos.datos[indiceEncontrado].category);
-            } else {
-                printf("Categoria actualizada correctamente.\n");
-            }
+        case '4': {
+            tString nuevaCategoria;
+            do {
+                ingresarCampo("Ingrese la nueva categoria: ", nuevaCategoria);
+                mayus(nuevaCategoria);
+                if (!categoriaExiste(nuevaCategoria)) {
+                    printf("Error: La categoria '%s' no existe.\n", nuevaCategoria);
+                } else {
+                    strcpy(productoEditado.category, nuevaCategoria);
+                    printf("Categoria actualizada correctamente.\n");
+                    editado = 1;
+                    break;
+                }
+            } while (1);
             break;
+        }
 
-        case '5':
+        case 'c':
+            printf("\nEdicion cancelada. No se guardaron cambios.\n");
+            free(productos.datos);
+            return;
+
+        case 'x':
             break;
 
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
         }
 
-        if (opcion != 5) {
+        if (opcion != 'x' && opcion != 'c') {
             printf("\nProducto actualizado (temporal):\n");
             imprimirProductoDetallado(productoEditado);
         }
 
     } while (opcion != 'x');
 
+    if (!editado) {
+        printf("\nNo se realizaron cambios.\n");
+        free(productos.datos);
+        return;
+    }
+
     obtenerFechaHora(productoEditado.updatedAt);
 
     productos.datos[indiceEncontrado] = productoEditado;
 
     if (escribirArchivo(productos)) {
-        printf("\nEl producto con id: %s fue actualizado exitosamente.\n", id);
+        printf("\nEl producto con ID: %s fue actualizado exitosamente.\n", id);
     } else {
         printf("\nError al guardar los cambios en el archivo.\n");
     }
 
     free(productos.datos);
 }
-
 void eliminarProducto() {
     tString id;
     ingresarCampo("Ingrese el ID del producto a eliminar: ", id);
