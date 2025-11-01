@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <ctype.h>
 
 // Definición de variables
 tString roles[CANT_ROLE] = {"ADMIN", "INVENTORY_MANAGER", "CASHIER", "CLIENT"};
@@ -511,6 +512,17 @@ void listarUsuarios() {
     } while (opcion != 'x');
 }
 
+static void crearMenuEdicionUsuario() {
+    printf("\n---| CAMPOS A EDITAR |---\n");
+    printf("[1] Email\n");
+    printf("[2] Password\n");
+    printf("[3] Nombre completo\n");
+    printf("[4] Rol\n");
+    printf("[x] Guardar cambios\n");
+    printf("[c] Cancelar edicion\n");
+    printf("Seleccione una opcion: ");
+}
+
 void actualizarUsuario() {
     tLista usuarios = leerArchivo();
 
@@ -544,20 +556,17 @@ void actualizarUsuario() {
     tUsuario usuarioEditado = usuarios.datos[indiceEncontrado];
 
     char opcion;
+    int editado = 0;
     do {
-        printf("\n---| CAMPOS A EDITAR |---\n");
-        printf("[1] Email\n");
-        printf("[2] Password\n");
-        printf("[3] Nombre completo\n");
-        printf("[4] Rol\n");
-        printf("[x] Terminar edicion\n");
-        printf("Seleccione una opcion: ");
+        crearMenuEdicionUsuario();
 
         if (scanf(" %c", &opcion) != 1) {
             printf("Entrada invalida.\n");
             fflush(stdin);
             continue;
         }
+
+        opcion = tolower(opcion);
 
         switch (opcion) {
         case '1': {
@@ -570,6 +579,7 @@ void actualizarUsuario() {
                 } else {
                     strcpy(usuarioEditado.email, nuevoEmail);
                     printf("Email actualizado correctamente.\n");
+                    editado = 1;
                     break;
                 }
             } while (1);
@@ -579,12 +589,14 @@ void actualizarUsuario() {
         case '2':
             ingresarCampo("Ingrese la nueva password: ", usuarioEditado.password);
             printf("Password actualizada correctamente.\n");
+            editado = 1;
             break;
 
         case '3':
             ingresarCampo("Ingrese el nuevo nombre completo: ", usuarioEditado.fullName);
             formatearNombre(usuarioEditado.fullName);
             printf("Nombre completo actualizado correctamente.\n");
+            editado = 1;
             break;
 
         case '4': {
@@ -593,8 +605,14 @@ void actualizarUsuario() {
 
             strcpy(usuarioEditado.role, nuevoRol);
             printf("Rol actualizado correctamente.\n");
+            editado = 1;
             break;
         }
+
+        case 'c':
+            printf("\nEdicion cancelada. No se guardaron cambios.\n");
+            free(usuarios.datos);
+            return;
 
         case 'x':
             break;
@@ -603,12 +621,18 @@ void actualizarUsuario() {
             printf("Opcion invalida. Intente nuevamente.\n");
         }
 
-        if (opcion != 'x') {
+        if (opcion != 'x' && opcion != 'c') {
             printf("\nUsuario actualizado (temporal):\n");
             imprimirUsuarioDetallado(usuarioEditado);
         }
 
     } while (opcion != 'x');
+
+    if (!editado) {
+        printf("\nNo se realizaron cambios.\n");
+        free(usuarios.datos);
+        return;
+    }
 
     obtenerFechaHora(usuarioEditado.updatedAt);
 
@@ -622,7 +646,6 @@ void actualizarUsuario() {
 
     free(usuarios.datos);
 }
-
 void eliminarUsuario() {
     tString id;
     ingresarCampo("Ingrese el ID del usuario a eliminar: ", id);
