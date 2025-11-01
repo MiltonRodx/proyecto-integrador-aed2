@@ -456,17 +456,11 @@ static void imprimirMenuBusquedaProductos() {
 
 void menuBusquedaProductos() {
     char opcion;
-    int resultado;
 
     do {
         imprimirMenuBusquedaProductos();
-        resultado = scanf(" %c", &opcion);
-
-        if (resultado != 1) {
-            printf("Entrada invalida. Por favor ingrese un numero.\n");
-            fflush(stdin);
-            continue;
-        }
+        scanf(" %c", &opcion);
+        opcion = tolower(opcion);
 
         switch (opcion) {
         case '1':
@@ -538,12 +532,7 @@ void actualizarProducto() {
     do {
         crearMenuEdicionProducto();
 
-        if (scanf(" %c", &opcion) != 1) {
-            printf("Entrada invalida.\n");
-            fflush(stdin);
-            continue;
-        }
-
+        scanf(" %c", &opcion);
         opcion = tolower(opcion);
 
         switch (opcion) {

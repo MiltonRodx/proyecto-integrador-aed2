@@ -1,6 +1,7 @@
 #include "categories.h"
 #include "functions.h"
 #include <stdio.h>
+#include <ctype.h>
 
 void crearMenuCategorias() {
     printf("\n---| MENU DE CATEGORIAS |---\n");
@@ -16,18 +17,12 @@ void crearMenuCategorias() {
 
 void menuCategorias() {
     char opcion;
-    int resultado;
 
     do {
         crearMenuCategorias();
 
-        resultado = scanf(" %c", &opcion);
-
-        if (resultado != 1) {
-            printf("Entrada invalida. Por favor ingrese un numero.\n");
-            fflush(stdin);
-            continue;
-        }
+        scanf(" %c", &opcion);
+        opcion = tolower(opcion);
 
         switch (opcion) {
         case '1':
