@@ -7,17 +7,17 @@ void crearMenuStock() {
     printf("\n---| MENU DE STOCK |---\n");
     printf("[1] Categorias\n");
     printf("[2] Productos\n");
-    printf("[3] Volver al menu principal\n");
+    printf("[x] Volver al menu principal\n");
     printf("Opcion: ");
 }
 
 void menuStock() {
-    int opcion;
+    char opcion;
     int resultado;
 
     do {
         crearMenuStock();
-        resultado = scanf("%d", &opcion);
+        resultado = scanf(" %c", &opcion);
 
         if (resultado != 1) {
             printf("Entrada invalida. Por favor ingrese un numero.\n");
@@ -26,14 +26,14 @@ void menuStock() {
         }
 
         switch (opcion) {
-        case 1:
+        case '1':
             menuCategorias();
             break;
-        case 2:
+        case '2':
             menuProductos();
             break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
         }
-    } while (opcion != 3);
+    } while (opcion != 'x');
 }

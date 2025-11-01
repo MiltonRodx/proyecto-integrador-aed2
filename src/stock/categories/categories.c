@@ -10,18 +10,18 @@ void crearMenuCategorias() {
     printf("[4] Filtrar por nombre\n");
     printf("[5] Editar\n");
     printf("[6] Eliminar\n");
-    printf("[7] Volver al menu principal\n");
+    printf("[x] Volver al menu principal\n");
     printf("Opcion: ");
 }
 
 void menuCategorias() {
-    int opcion;
+    char opcion;
     int resultado;
 
     do {
         crearMenuCategorias();
 
-        resultado = scanf("%d", &opcion);
+        resultado = scanf(" %c", &opcion);
 
         if (resultado != 1) {
             printf("Entrada invalida. Por favor ingrese un numero.\n");
@@ -30,26 +30,26 @@ void menuCategorias() {
         }
 
         switch (opcion) {
-        case 1:
+        case '1':
             crearCategorias();
             break;
-        case 2:
+        case '2':
             leerCategorias();
             break;
-        case 3:
+        case '3':
             buscarCategorias();
             break;
-        case 4:
+        case '4':
             filtrarCategoriaPorNombre();
             break;
-        case 5:
+        case '5':
             editarCategoria();
             break;
-        case 6:
+        case '6':
             eliminarCategoria();
             break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
         }
-    } while (opcion != 7);
+    } while (opcion != 'x');
 }
