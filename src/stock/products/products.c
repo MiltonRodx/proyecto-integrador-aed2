@@ -1,5 +1,6 @@
 #include "products.h"
 #include "functions.h"
+#include <ctype.h>
 #include <stdio.h>
 
 void crearMenuProductos() {
@@ -15,18 +16,12 @@ void crearMenuProductos() {
 
 void menuProductos() {
     char opcion;
-    int resultado;
 
     do {
         crearMenuProductos();
 
-        resultado = scanf(" %c", &opcion);
-
-        if (resultado != 1) {
-            printf("Entrada invalida. Por favor ingrese un numero.\n");
-            fflush(stdin);
-            continue;
-        }
+        scanf(" %c", &opcion);
+        opcion = tolower(opcion);
 
         switch (opcion) {
         case '1':

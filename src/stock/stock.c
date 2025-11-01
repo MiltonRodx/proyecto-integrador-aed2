@@ -2,6 +2,7 @@
 #include "categories/categories.h"
 #include "products/products.h"
 #include <stdio.h>
+#include <ctype.h>
 
 void crearMenuStock() {
     printf("\n---| MENU DE STOCK |---\n");
@@ -13,17 +14,11 @@ void crearMenuStock() {
 
 void menuStock() {
     char opcion;
-    int resultado;
 
     do {
         crearMenuStock();
-        resultado = scanf(" %c", &opcion);
-
-        if (resultado != 1) {
-            printf("Entrada invalida. Por favor ingrese un numero.\n");
-            fflush(stdin);
-            continue;
-        }
+        scanf(" %c", &opcion);
+        opcion = tolower(opcion);
 
         switch (opcion) {
         case '1':
