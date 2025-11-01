@@ -2,12 +2,12 @@
 #include "functions.h"
 #include "../utils/utils.h"
 #include "users.h"
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <ctype.h>
 
 // Definición de variables
 tString roles[CANT_ROLE] = {"ADMIN", "INVENTORY_MANAGER", "CASHIER", "CLIENT"};
@@ -445,17 +445,11 @@ void imprimirMenuBusquedaUsuarios() {
 
 void menuBusquedaUsuarios() {
     char opcion;
-    int resultado;
 
     do {
         imprimirMenuBusquedaUsuarios();
-        resultado = scanf(" %c", &opcion);
-
-        if (resultado != 1) {
-            printf("Entrada invalida. Por favor ingrese una opcion valida.\n");
-            fflush(stdin);
-            continue;
-        }
+        scanf(" %c", &opcion);
+        opcion = tolower(opcion);
 
         switch (opcion) {
         case '1':
@@ -485,17 +479,11 @@ void imprimirMenuListarUsuarios() {
 
 void listarUsuarios() {
     char opcion;
-    int resultado;
 
     do {
         imprimirMenuListarUsuarios();
-        resultado = scanf(" %c", &opcion);
-
-        if (resultado != 1) {
-            printf("Entrada invalida. Por favor ingrese una opcion valida.\n");
-            fflush(stdin);
-            continue;
-        }
+        scanf(" %c", &opcion);
+        opcion = tolower(opcion);
 
         switch (opcion) {
         case '1':
@@ -560,12 +548,7 @@ void actualizarUsuario() {
     do {
         crearMenuEdicionUsuario();
 
-        if (scanf(" %c", &opcion) != 1) {
-            printf("Entrada invalida.\n");
-            fflush(stdin);
-            continue;
-        }
-
+        scanf(" %c", &opcion);
         opcion = tolower(opcion);
 
         switch (opcion) {
