@@ -124,6 +124,12 @@ static int idExiste(tString valor) {
     return 0;
 }
 
+static void generarIdUnica(char* id) {
+    do {
+        generateCode(id);
+    } while (idExiste(id));
+}
+
 int codigoExiste(tString valor) {
     tLista productos = leerArchivo();
 
@@ -168,11 +174,7 @@ static int escribirArchivo(tLista productos) {
 void crearProducto() {
     tProducto producto;
 
-    ingresarCampo("Ingrese el ID del producto: ", producto.id);
-    if (idExiste(producto.id)) {
-        printf("Error: El ID '%s' ya existe.\n", producto.id);
-        return;
-    }
+    generarIdUnica(producto.id);
 
     ingresarCampo("Ingrese el nombre del producto: ", producto.name);
     formatearNombre(producto.name);
