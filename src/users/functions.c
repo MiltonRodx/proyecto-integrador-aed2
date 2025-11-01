@@ -1,581 +1,676 @@
+// Librerias
+#include "functions.h"
+#include "../utils/utils.h"
 #include "users.h"
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <stdlib.h>
-#include "functions.h"
 
-#define MAX_LEN 64
-#define MAX_USERS 200
-typedef char tString[MAX_LEN];
-#define MAX 64
-typedef char tString[MAX];
-tString roles[4] = {"admin", "inventory_manager", "manager", "client"};
-#define MAX_LINE 512
+// Definición de variables
+tString roles[CANT_ROLE] = {"ADMIN", "INVENTORY_MANAGER", "CASHIER", "CLIENT"};
 
-
-//Estructura tUsuario
-typedef struct {
-    int id;
-    char password[MAX_LEN];
-    char email[MAX_LEN];
-    char firstName[MAX_LEN];
-    char lastName[MAX_LEN];
-    int rol;
-    char createdAt[MAX_LEN];
-    char updatedAt[MAX_LEN];
-} tUsuario;
-
-tUsuario usuarios[MAX_USERS];
-int numUsuarios = 0;
-
-
-//                  //
-//    Definicion    //
-//                  //
-//Create
-void crearUsuario(){
-    FILE* file = fopen("users.csv", "a");
-
-    //Verif
-    if (!file) {
-        perror("Error al abrir users.csv");
-        return;
-    }
-
-    int id;
-    char username[MAX];
-    char password[MAX];
-    char email[MAX];
-    char nombres[MAX];
-    char apellidos[MAX];
-    char rol[MAX];
-    char horaCreado[32];
-    char horaActualizado[32];
-
-    //Desplazamiento correcto hacia caracter deseado
-    // Que seria el ultimo \n
-    fseek(file, 0, SEEK_END);
-    long size = ftell(file);
-    if (size > 0) {
-        int ch;
-
-        while (ch == '\n' || ch == '\r'){
-
-            fseek(file, -1, SEEK_CUR);
-            ch = fgetc(file);
-            if (ftell(file) <= 1) break; //para si esta en inicio
-        }
-      
-        if (ch != '\n' && ch != '\r') {
-            fputc('\n', file);
-        }
-    }
-
-
-    // obtener informacion de fecha y hora
-    time_t t = time(NULL);
-    struct tm *tm_info = localtime(&t);
-    strftime(horaCreado, sizeof(horaCreado), "%Y-%m-%d", tm_info);
-    strncpy(horaActualizado, horaCreado, sizeof(horaActualizado));
-
-    // Input de datos
-    printf("Ingrese ID: ");
-    scanf("%d", &id);
-    printf("Ingrese username: ");
-    scanf("%s", username);
-    printf("Ingrese password: ");
-    scanf("%s", password);
-    printf("Ingrese email: ");
-    scanf(" %s", email);
-    printf("Ingrese nombres: ");
-    scanf(" %63[^\n]", nombres);
-    printf("Ingrese apellido: ");
-    scanf(" %63[^\n]", apellidos);
-    printf("Ingrese rol (admin, inventory_manager, manager, client): ");
-    scanf("%s", rol);
-
-    // Guardar en el CSV
-    fprintf(file, "%d,%s,%s,%s,%s,%s,%s,%s,%s",
-            id, username, password, email, nombres, apellidos, rol, horaCreado, horaActualizado);
-
-    fclose(file);
-    printf("Usuario creado y guardado en users.csv\n");
+// Funciones
+static void ingresarCampo(const char* mensaje, tString campo) {
+    printf("%s", mensaje);
+    fflush(stdin);
+    scanf(" %49[^\n]", campo);
 }
 
+void parsearUsuario(char* linea, tUsuario* usuario) {
+    char* valor = strtok(linea, ",");
 
+    if (valor)
+        strcpy(usuario->id, valor);
 
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(usuario->email, valor);
 
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(usuario->password, valor);
 
-void buscarUserPorID(int id) {
-    FILE* file = fopen("users.csv", "r");
-    if (!file) {
-        printf("No se pudo abrir el archivo.\n");
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(usuario->fullName, valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(usuario->role, valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(usuario->createdAt, valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(usuario->updatedAt, valor);
+}
+
+static tLista leerArchivo() {
+    FILE* archivo = fopen(ARCHIVO, "r");
+    if (!archivo) {
+        return (tLista){NULL, 0};
+    }
+
+    tLista lista = {NULL, 0};
+    char linea[MAXLINEA];
+    int esPrimeraLinea = 1;
+
+    while (fgets(linea, MAXLINEA, archivo)) {
+        linea[strcspn(linea, "\n")] = '\0';
+
+        if (esPrimeraLinea) {
+            esPrimeraLinea = 0;
+            if (strstr(linea, "id,") != NULL) {
+                continue;
+            }
+        }
+
+        lista.datos = realloc(lista.datos, (lista.tam + 1) * sizeof(tUsuario));
+        if (!lista.datos) {
+            printf("Error al reasignar memoria\n");
+            fclose(archivo);
+            return (tLista){NULL, 0};
+        }
+
+        char lineaCopia[MAXLINEA];
+        strcpy(lineaCopia, linea);
+        parsearUsuario(lineaCopia, &lista.datos[lista.tam]);
+        lista.tam++;
+    }
+
+    fclose(archivo);
+    return lista;
+}
+
+static int idExiste(tString valor) {
+    tLista usuarios = leerArchivo();
+
+    if (!usuarios.datos) {
+        return 0;
+    }
+
+    for (int i = 0; i < usuarios.tam; i++) {
+        if (strcmp(usuarios.datos[i].id, valor) == 0) {
+            free(usuarios.datos);
+            return 1;
+        }
+    }
+
+    free(usuarios.datos);
+    return 0;
+}
+
+void generarIdUnica(char* id) {
+    do {
+        generateCode(id);
+    } while (idExiste(id));
+}
+
+int emailExiste(tString valor) {
+    tLista usuarios = leerArchivo();
+
+    if (!usuarios.datos) {
+        return 0;
+    }
+
+    for (int i = 0; i < usuarios.tam; i++) {
+        if (strcmp(usuarios.datos[i].email, valor) == 0) {
+            free(usuarios.datos);
+            return 1;
+        }
+    }
+
+    free(usuarios.datos);
+    return 0;
+}
+
+static int escribirArchivo(tLista usuarios) {
+    FILE* archivo = fopen(ARCHIVO, "w");
+    if (!archivo) {
+        printf("Error: No se pudo abrir el archivo para escribir.\n");
+        return 0;
+    }
+
+    fprintf(archivo, "id,email,password,fullName,rol,createdAt,updatedAt\n");
+
+    for (int i = 0; i < usuarios.tam; i++) {
+        fprintf(archivo, "%s,%s,%s,%s,%s,%s,%s\n",
+                usuarios.datos[i].id,
+                usuarios.datos[i].email,
+                usuarios.datos[i].password,
+                usuarios.datos[i].fullName,
+                usuarios.datos[i].role,
+                usuarios.datos[i].createdAt,
+                usuarios.datos[i].updatedAt);
+    }
+
+    fclose(archivo);
+    return 1;
+}
+
+int rolValido(tString role) {
+    mayus(role);
+    for (int i = 0; i < 4; i++) {
+        if (strcmp(role, roles[i]) == 0) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void imprimirOpcionesRoles() {
+    printf("Seleccione un rol: \n");
+    for (int i = 0; i < CANT_ROLE; i++) {
+        printf("[%d] %s\n", i + 1, roles[i]);
+    }
+    printf("Opcion: ");
+}
+
+void seleccionarRol(char* role) {
+    int opcion;
+    int resultado;
+    int valido = 0;
+
+    do {
+        imprimirOpcionesRoles();
+
+        resultado = scanf("%d", &opcion);
+
+        if (resultado != 1) {
+            printf("Entrada invalida. Por favor ingrese un numero.\n");
+            fflush(stdin);
+            continue;
+        }
+
+        if (opcion >= 1 && opcion <= CANT_ROLE) {
+            strcpy(role, roles[opcion - 1]);
+            printf("Rol seleccionado: %s\n", role);
+            valido = 1;
+        } else {
+            printf("Opcion invalida. Intente nuevamente.\n");
+        }
+
+    } while (!valido);
+}
+
+void crearUsuario() {
+    tUsuario usuario;
+
+    generarIdUnica(usuario.id);
+
+    do {
+        ingresarCampo("Ingrese email: ", usuario.email);
+        if (emailExiste(usuario.email)) {
+            printf("Error: El email '%s' ya existe. Intente con otro.\n", usuario.email);
+        }
+    } while (emailExiste(usuario.email));
+
+    ingresarCampo("Ingrese password: ", usuario.password);
+    ingresarCampo("Ingrese nombre completo: ", usuario.fullName);
+
+    seleccionarRol(usuario.role);
+
+    obtenerFechaHora(usuario.createdAt);
+    strcpy(usuario.updatedAt, usuario.createdAt);
+
+    tLista usuarios = leerArchivo();
+    usuarios.datos = realloc(usuarios.datos, (usuarios.tam + 1) * sizeof(tUsuario));
+    if (!usuarios.datos) {
+        printf("Error al agregar el usuario.\n");
         return;
     }
 
-    char line[512];
-    fgets(line, sizeof(line), file); // saltar encabezado
+    usuarios.datos[usuarios.tam] = usuario;
+    usuarios.tam++;
 
-    while (fgets(line, sizeof(line), file)) {
-        int userId;
-        if (sscanf(line, "%d,", &userId) == 1 && userId == id) {
-            printf("Usuario encontrado:\n%s", line);
-            fclose(file);
+    if (escribirArchivo(usuarios)) {
+        printf("Usuario '%s' creado exitosamente con ID: %s\n", usuario.fullName, usuario.id);
+    }
+
+    free(usuarios.datos);
+}
+
+void crearUsuarios() {
+    int salir = 0;
+    do {
+        crearUsuario();
+        printf("¿Desea agregar otro usuario? 1-Si 2-No: ");
+        scanf("%d", &salir);
+    } while (salir == 1);
+}
+
+static void imprimirCabecera() {
+    printf("\n%-5s %-25s %-15s %-30s %-22s %-22s %-22s\n",
+           "ID", "EMAIL", "PASSWORD", "NOMBRE COMPLETO", "ROL", "CREADO", "ACTUALIZADO");
+
+    // Calcular ancho total de la tabla
+    int ancho = 5 + 25 + 15 + 30 + 22 + 22 + 22 + 6; // +6 por los espacios entre columnas
+    for (int i = 0; i < ancho; i++) {
+        printf("-");
+    }
+    printf("\n");
+}
+
+static void imprimirLinea(tUsuario usuario) {
+    printf("%-5s %-25s %-15s %-30s %-22s %-22s %-22s\n",
+           usuario.id, usuario.email, usuario.password,
+           usuario.fullName, usuario.role,
+           usuario.createdAt, usuario.updatedAt);
+}
+
+void imprimirUsuarios(tLista usuarios) {
+    if (usuarios.tam == 0) {
+        printf("No hay usuarios para mostrar.\n");
+        return;
+    }
+
+    imprimirCabecera();
+    for (int i = 0; i < usuarios.tam; i++) {
+        imprimirLinea(usuarios.datos[i]);
+    }
+    printf("\nTotal de usuarios: %d\n", usuarios.tam);
+}
+
+void obtenerUsuarios() {
+    tLista usuarios = leerArchivo();
+
+    if (!usuarios.datos) {
+        printf("Error: No se pudo abrir el archivo.\n");
+        return;
+    }
+
+    imprimirUsuarios(usuarios);
+    free(usuarios.datos);
+}
+
+void imprimirUsuarioDetallado(tUsuario usuario) {
+    printf("\nUsuario encontrado:\n");
+    printf("ID: %s\n", usuario.id);
+    printf("Email: %s\n", usuario.email);
+    printf("Password: %s\n", usuario.password);
+    printf("Nombre Completo: %s\n", usuario.fullName);
+    printf("Rol: %s\n", usuario.role);
+    printf("Creado: %s\n", usuario.createdAt);
+    printf("Actualizado: %s\n", usuario.updatedAt);
+}
+
+void buscarUserPorID() {
+    tLista usuarios = leerArchivo();
+
+    if (!usuarios.datos) {
+        printf("Error: No se pudo abrir el archivo.\n");
+        return;
+    }
+
+    tString id;
+    ingresarCampo("Ingrese el ID del usuario: ", id);
+
+    for (int i = 0; i < usuarios.tam; i++) {
+        if (strcmp(usuarios.datos[i].id, id) == 0) {
+            imprimirUsuarioDetallado(usuarios.datos[i]);
+            free(usuarios.datos);
             return;
         }
     }
 
-    printf("Usuario con ID %d no encontrado.\n", id);
-    fclose(file);
+    printf("Usuario con ID '%s' no encontrado.\n", id);
+    free(usuarios.datos);
 }
 
-void buscarPorUsername(tString nombre) {
-    FILE* file = fopen("users.csv", "r");
-    if (!file) {
-        printf("No se pudo abrir el archivo.\n");
+void buscarPorEmail() {
+    tLista usuarios = leerArchivo();
+
+    if (!usuarios.datos) {
+        printf("Error: No se pudo abrir el archivo.\n");
         return;
     }
 
-    char line[512];
-    fgets(line, sizeof(line), file); // saltar encabezado
+    tString email;
+    ingresarCampo("Ingrese el email: ", email);
 
-    while (fgets(line, sizeof(line), file)) {
-        char userId[10], username[50];
-        // Extraemos id y username (primeros 2 campos)
-        if (sscanf(line, "%[^,],%[^,]", userId, username) == 2) {
-            if (strcmp(username, nombre) == 0) {
-                printf("Usuario encontrado:\n%s", line);
-                fclose(file);
-                return;
-            }
-        }
-    }
-
-    printf("Usuario con username '%s' no encontrado.\n", nombre);
-    fclose(file);
-}
-
-
-void buscarPorEmail(tString email) {
-    FILE* file = fopen("users.csv", "r");
-    if (!file) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-
-    char line[512];
-    fgets(line, sizeof(line), file); // saltar encabezado
-
-    while (fgets(line, sizeof(line), file)) {
-        if (strstr(line, email)) { // si la línea contiene el email
-            printf("Usuario encontrado:\n%s", line);
-            fclose(file);
+    for (int i = 0; i < usuarios.tam; i++) {
+        if (strcmp(usuarios.datos[i].email, email) == 0) {
+            imprimirUsuarioDetallado(usuarios.datos[i]);
+            free(usuarios.datos);
             return;
         }
     }
 
     printf("Usuario con email '%s' no encontrado.\n", email);
-    fclose(file);
+    free(usuarios.datos);
 }
 
+void buscarPorNombre() {
+    tString busqueda;
+    ingresarCampo("Ingrese el nombre a buscar: ", busqueda);
 
-
-void mostrarUsuarios() {
-    FILE *file = fopen("users.csv", "r");
-    if (!file) {
-        perror("Error al abrir users.csv");
+    if (strlen(busqueda) == 0) {
+        printf("Error: La busqueda no puede estar vacia.\n");
         return;
     }
 
-    bool esCabecera = true;
-    char line[MAX_LINE];
+    tLista usuarios = leerArchivo();
 
-    printf("=== LISTA DE USUARIOS ===\n\n");
-    printf("%-4s %-12s %-12s %-25s %-12s %-12s %-8s %-12s %-12s\n",
-           "ID", "User", "Password", "Email", "Nombre", "Apellido", "Rol", "Creado", "Actualizado");
-    printf("----------------------------------------------------------------------------------------------------------------------\n");
+    if (!usuarios.datos) {
+        printf("Error: No se pudo leer el archivo.\n");
+        return;
+    }
 
-    while (fgets(line, sizeof(line), file)) {
-        line[strcspn(line, "\n")] = '\0'; // remove newline
+    tLista resultado = {NULL, 0};
 
-        if (strlen(line) == 0) continue;
+    tString busquedaMayus;
+    strcpy(busquedaMayus, busqueda);
+    mayus(busquedaMayus);
 
-        // modificar cabecera
-        if (esCabecera) {
-            esCabecera = false;
+    for (int i = 0; i < usuarios.tam; i++) {
+        tString nombreMayus;
+        strcpy(nombreMayus, usuarios.datos[i].fullName);
+        mayus(nombreMayus);
+
+        if (strstr(nombreMayus, busquedaMayus) != NULL) {
+            resultado.datos = realloc(resultado.datos, (resultado.tam + 1) * sizeof(tUsuario));
+            if (!resultado.datos) {
+                printf("Error al asignar memoria.\n");
+                free(usuarios.datos);
+                return;
+            }
+            resultado.datos[resultado.tam] = usuarios.datos[i];
+            resultado.tam++;
+        }
+    }
+
+    if (resultado.tam == 0) {
+        printf("No se encontraron usuarios que contengan '%s'.\n", busqueda);
+    } else {
+        imprimirUsuarios(resultado);
+    }
+
+    free(usuarios.datos);
+    free(resultado.datos);
+}
+
+void listarPorRol() {
+    tLista usuarios = leerArchivo();
+
+    if (!usuarios.datos) {
+        printf("Error: No se pudo abrir el archivo.\n");
+        return;
+    }
+
+    tString role;
+    ingresarCampo("Ingrese el rol (ADMIN, INVENTORY_MANAGER, CASHIER, CLIENT): ", role);
+    mayus(role);
+
+    if (!rolValido(role)) {
+        printf("Error: El rol '%s' no es valido.\n", role);
+        free(usuarios.datos);
+        return;
+    }
+
+    int cont = 0;
+    imprimirCabecera();
+    for (int i = 0; i < usuarios.tam; i++) {
+        if (strcmp(usuarios.datos[i].role, role) == 0) {
+            imprimirLinea(usuarios.datos[i]);
+            cont++;
+        }
+    }
+
+    if (cont == 0) {
+        printf("No se encontraron usuarios con el rol '%s'.\n", role);
+    } else {
+        printf("\nTotal de usuarios con rol '%s': %d\n", role, cont);
+    }
+
+    free(usuarios.datos);
+}
+
+void imprimirMenuBusquedaUsuarios() {
+    printf("\n---| MENU DE BUSQUEDA |---\n");
+    printf("[1] Por ID\n");
+    printf("[2] Por email\n");
+    printf("[3] Por nombre\n");
+    printf("[x] Volver al menu principal\n");
+    printf("Opcion: ");
+}
+
+void menuBusquedaUsuarios() {
+    char opcion;
+    int resultado;
+
+    do {
+        imprimirMenuBusquedaUsuarios();
+        resultado = scanf(" %c", &opcion);
+
+        if (resultado != 1) {
+            printf("Entrada invalida. Por favor ingrese una opcion valida.\n");
+            fflush(stdin);
             continue;
         }
 
-        // usar un token, la coma
-        char *token = strtok(line, ",");
-        char *campos[9];
-        int i = 0;
-
-        while (token != NULL && i < 9) {
-            campos[i++] = token;
-            token = strtok(NULL, ",");
+        switch (opcion) {
+        case '1':
+            buscarUserPorID();
+            break;
+        case '2':
+            buscarPorEmail();
+            break;
+        case '3':
+            buscarPorNombre();
+            break;
+        case 'x':
+            break;
+        default:
+            printf("Opcion invalida. Intente nuevamente.\n");
         }
-
-        if (i == 9) {
-            printf("%-4s %-12s %-12s %-25s %-12s %-12s %-8s %-12s %-12s\n",
-                   campos[0], campos[1], campos[2], campos[3],
-                   campos[4], campos[5], campos[6], campos[7], campos[8]);
-        }
-    }
-    printf("\n");
-    fclose(file);
+    } while (opcion != 'x');
 }
 
-
-
-void listarPorRol(int indiceRol) {
-    if (indiceRol < 0 || indiceRol > 3) {
-        printf("Rol inválido.\n");
-        return;
-    }
-
-    const char *rolBuscado = roles[indiceRol];
-
-    FILE* archivo = fopen("users.csv", "r");
-    if (!archivo) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
-    }
-
-    char linea[512];
-    fgets(linea, sizeof(linea), archivo); // saltar encabezado
-
-    printf("Usuarios con rol '%s':\n", rolBuscado);
-    printf("%-4s %-12s %-25s %-12s %-12s %-12s %-12s\n",
-           "ID", "Usuario", "Email", "Nombre", "Apellido", "Creado", "Actualizado");
-    printf("--------------------------------------------------------------------------------\n");
-
-    while (fgets(linea, sizeof(linea), archivo)) {
-        linea[strcspn(linea, "\n")] = '\0'; // eliminar salto de línea
-
-        char *token;
-        char campos[9][128]; // 9 campos por línea
-        int i = 0;
-
-        token = strtok(linea, ",");
-        while (token != NULL && i < 9) {
-            strncpy(campos[i], token, sizeof(campos[i]));
-            i++;
-            token = strtok(NULL, ",");
-        }
-
-        // Comprobar que el rol coincide
-        if (i == 9 && strcmp(campos[6], rolBuscado) == 0) {
-            printf("%-4s %-12s %-25s %-12s %-12s %-12s %-12s\n",
-                   campos[0], campos[1], campos[3], campos[4], campos[5], campos[7], campos[8]);
-        }
-    }
-
-    fclose(archivo);
+void imprimirMenuListarUsuarios() {
+    printf("\n---| MENU DE LISTADO |---\n");
+    printf("[1] Listar todos\n");
+    printf("[2] Listar por rol\n");
+    printf("[x] Volver al menu principal\n");
+    printf("Opcion: ");
 }
 
-void listarUsuarios(){
-    //menu
-    char opc;
+void listarUsuarios() {
+    char opcion;
+    int resultado;
 
     do {
-        printf("\n=== Menu: Listar usuarios ===\n");
-        printf("1. Listar todos\n");
-        printf("2. Listar por rol\n");
-        printf("x. Opcion anterior\n");
-        scanf(" %c", &opc);
+        imprimirMenuListarUsuarios();
+        resultado = scanf(" %c", &opcion);
 
-        switch (opc){
-            case '1': mostrarUsuarios();
-                    break;
-            case '2': int pInt_Rol;
-                    printf("Inserte numero de rol: (1= ADMIN, 2= INVENTORY_MANAGER, 3= CASHIER, 4= CLIENT)");
-                    scanf(" %d", &pInt_Rol);
-                    listarPorRol(pInt_Rol-1);
-                    break;
-            default: printf("Opción inválida\n");
-                    break;
+        if (resultado != 1) {
+            printf("Entrada invalida. Por favor ingrese una opcion valida.\n");
+            fflush(stdin);
+            continue;
         }
-    } while (opc != 'x');
 
-    
+        switch (opcion) {
+        case '1':
+            obtenerUsuarios();
+            break;
+        case '2':
+            listarPorRol();
+            break;
+        case 'x':
+            break;
+        default:
+            printf("Opcion invalida. Intente nuevamente.\n");
+        }
+    } while (opcion != 'x');
 }
 
-void buscarUsuarios(){
-    char opc;
+void actualizarUsuario() {
+    tLista usuarios = leerArchivo();
+
+    if (!usuarios.datos || usuarios.tam == 0) {
+        printf("No hay usuarios para editar.\n");
+        free(usuarios.datos);
+        return;
+    }
+
+    tString id;
+    ingresarCampo("Ingrese el ID del usuario a editar: ", id);
+
+    int indiceEncontrado = -1;
+    for (int i = 0; i < usuarios.tam; i++) {
+        if (strcmp(usuarios.datos[i].id, id) == 0) {
+            indiceEncontrado = i;
+            break;
+        }
+    }
+
+    if (indiceEncontrado == -1) {
+        printf("Error: El usuario con ID '%s' no se encontro.\n", id);
+        free(usuarios.datos);
+        return;
+    }
+
+    printf("\nUsuario actual:\n");
+    imprimirUsuarioDetallado(usuarios.datos[indiceEncontrado]);
+
+    tUsuario usuarioEditado = usuarios.datos[indiceEncontrado];
+
+    char opcion;
     do {
-        printf("\n=== Menu: Buscar usuarios ===\n");
-        printf("1. Buscar por ID\n");
-        printf("2. Buscar por user\n");
-        printf("3. Buscar por email\n");
-        printf("x. Opcion anterior\n");
-        scanf(" %c", &opc);
-
-        switch (opc){
-            case '1': int pId;
-                printf("Inserte id: ");
-                scanf(" %d", &pId);
-                buscarUserPorID(pId);
-                break;
-            case '2': tString pUsuario;
-                printf("Inserte usuario: ");
-                scanf(" %63[^\n]", pUsuario);
-                buscarPorUsername(pUsuario);
-                break;
-            case '3': tString pEmail;
-                printf("Inserte email: ");
-                scanf(" %63[^\n]", pEmail);
-                buscarPorEmail(pEmail);
-                break;
-            default: printf("Opcion invalida\n");
-                break;
+        printf("\n---| CAMPOS A EDITAR |---\n");
+        printf("[1] Email\n");
+        printf("[2] Password\n");
+        printf("[3] Nombre completo\n");
+        printf("[4] Rol\n");
+        printf("[x] Terminar edicion\n");
+        printf("Opcion: ");
+        if (scanf(" %c", &opcion) != 1) {
+            printf("Entrada invalida.\n");
+            fflush(stdin);
+            continue;
         }
-    } while (opc != 'x');
+
+        switch (opcion) {
+        case '1': {
+            tString nuevoEmail;
+            do {
+                ingresarCampo("Ingrese el nuevo email: ", nuevoEmail);
+                if (emailExiste(nuevoEmail) && strcmp(nuevoEmail, usuarioEditado.email) != 0) {
+                    printf("Error: El email '%s' ya existe.\n", nuevoEmail);
+                } else {
+                    strcpy(usuarioEditado.email, nuevoEmail);
+                    printf("Email actualizado correctamente.\n");
+                    break;
+                }
+            } while (1);
+            break;
+        }
+
+        case '2':
+            ingresarCampo("Ingrese la nueva password: ", usuarioEditado.password);
+            printf("Password actualizada correctamente.\n");
+            break;
+
+        case '3':
+            ingresarCampo("Ingrese el nuevo nombre completo: ", usuarioEditado.fullName);
+            printf("Nombre completo actualizado correctamente.\n");
+            break;
+
+        case '4': {
+            tString nuevoRol;
+            do {
+                ingresarCampo("Ingrese el nuevo rol (ADMIN, INVENTORY_MANAGER, CASHIER, CLIENT): ", nuevoRol);
+                mayus(nuevoRol);
+                if (!rolValido(nuevoRol)) {
+                    printf("Error: El rol '%s' no es valido.\n", nuevoRol);
+                } else {
+                    strcpy(usuarioEditado.role, nuevoRol);
+                    printf("Rol actualizado correctamente.\n");
+                    break;
+                }
+            } while (1);
+            break;
+        }
+
+        case 'x':
+            break;
+
+        default:
+            printf("Opcion invalida. Intente nuevamente.\n");
+        }
+
+        if (opcion != 'x') {
+            printf("\nUsuario actualizado (temporal):\n");
+            imprimirUsuarioDetallado(usuarioEditado);
+        }
+
+    } while (opcion != 'x');
+
+    obtenerFechaHora(usuarioEditado.updatedAt);
+
+    usuarios.datos[indiceEncontrado] = usuarioEditado;
+
+    if (escribirArchivo(usuarios)) {
+        printf("\nEl usuario con ID: %s fue actualizado exitosamente.\n", id);
+    } else {
+        printf("\nError al guardar los cambios en el archivo.\n");
+    }
+
+    free(usuarios.datos);
 }
 
+void eliminarUsuario() {
+    tString id;
+    ingresarCampo("Ingrese el ID del usuario a eliminar: ", id);
 
-//Read
-void menuLectura(){
-    char opc;
-    do {
-        printf("\n=== Menu: Lectura de archivo ===\n");
-        printf("1. Listar\n");
-        printf("2. Buscar\n");
-        printf("x. Opcion anterior\n");
-        scanf(" %d", &opc);
+    tLista usuarios = leerArchivo();
 
-        switch (opc) {
-            case '1': listarUsuarios();
-                    break;
-            case '2': buscarUsuarios();
-                    break;
-            default: printf("Opcion invalida\n");
-                    break;
-        }
-    } while (opc != 'x');
-}
-
-
-//Update
-void actualizarUsername(int id, tString nuevoUsername) {
-    FILE* file = fopen("users.csv", "r");
-    FILE* temp = fopen("temp.csv", "w");
-    char line[512];
-
-    if (!file || !temp) {
-        printf("No se pudo abrir el archivo.\n");
+    if (!usuarios.datos || usuarios.tam == 0) {
+        printf("No hay usuarios para eliminar.\n");
         return;
     }
 
-    // Copiar encabezado
-    if (fgets(line, sizeof(line), file)) {
-        fputs(line, temp);
-    }
+    int indiceEncontrado = -1;
+    tUsuario usuarioEliminar;
 
-    bool encontrado = false;
-
-    while (fgets(line, sizeof(line), file)) {
-        int userId;
-        char username[50], rest[400];
-
-        // Separar ID y username, el resto se deja tal cual.
-        if (sscanf(line, "%d,%49[^,],%[^\n]", &userId, username, rest) == 3) {
-            if (userId == id) {
-                fprintf(temp, "%d,%s,%s\n", userId, nuevoUsername, rest);
-                encontrado = true;
-            } else {
-                fputs(line, temp);
-            }
+    for (int i = 0; i < usuarios.tam; i++) {
+        if (strcmp(usuarios.datos[i].id, id) == 0) {
+            indiceEncontrado = i;
+            usuarioEliminar = usuarios.datos[i];
+            break;
         }
     }
 
-    fclose(file);
-    fclose(temp);
-
-    remove("users.csv");
-    rename("temp.csv", "users.csv");
-
-    if (encontrado) {
-        printf("Username del usuario %d actualizado a '%s'.\n", id, nuevoUsername);
-    } else {
-        printf("Usuario con ID %d no encontrado.\n", id);
-    }
-}
-
-void actualizarEmail(int id, tString nuevoEmail) {
-    FILE* file = fopen("users.csv", "r");
-    FILE* temp = fopen("temp.csv", "w");
-    char line[512];
-
-    if (!file || !temp) {
-        printf("No se pudo abrir el archivo.\n");
+    if (indiceEncontrado == -1) {
+        printf("Error: El usuario con ID: %s no se encontro.\n", id);
+        free(usuarios.datos);
         return;
     }
 
-    // Copiar encabezado
-    if (fgets(line, sizeof(line), file)) {
-        fputs(line, temp);
-    }
+    tLista nuevaLista = {NULL, 0};
+    nuevaLista.datos = malloc((usuarios.tam - 1) * sizeof(tUsuario));
 
-    int encontrado = 0;
-
-    while (fgets(line, sizeof(line), file)) {
-        int userId;
-        char username[50], password[50], email[100], resto[300];
-
-        // Separar los primeros 4 campos, el resto se mantiene igual
-        if (sscanf(line, "%d,%49[^,],%49[^,],%99[^,],%[^\n]", &userId, username, password, email, resto) == 5) {
-            if (userId == id) {
-                // Escribir línea con el nuevo email
-                fprintf(temp, "%d,%s,%s,%s,%s\n", userId, username, password, nuevoEmail, resto);
-                encontrado = 1;
-            } else {
-                fputs(line, temp);
-            }
-        }
-    }
-
-    fclose(file);
-    fclose(temp);
-
-    remove("users.csv");
-    rename("temp.csv", "users.csv");
-
-    if (encontrado) {
-        printf("Email del usuario %d actualizado a '%s'.\n", id, nuevoEmail);
-    } else {
-        printf("Usuario con ID %d no encontrado.\n", id);
-    }
-}
-
-void actualizarContrasena(int id, tString nuevaContrasena) {
-    FILE* file = fopen("users.csv", "r");
-    FILE* temp = fopen("temp.csv", "w");
-    char line[512];
-
-    if (!file || !temp) {
-        printf("No se pudo abrir el archivo.\n");
+    if (!nuevaLista.datos && usuarios.tam > 1) {
+        printf("Error de memoria.\n");
+        free(usuarios.datos);
         return;
     }
 
-    // Copiar encabezado
-    if (fgets(line, sizeof(line), file)) {
-        fputs(line, temp);
-    }
-
-    int encontrado = 0;
-
-    while (fgets(line, sizeof(line), file)) {
-        int userId;
-        char username[50], password[50], email[100], rest[300];
-
-        // Separar los primeros 4 campos y el resto
-        if (sscanf(line, "%d,%49[^,],%49[^,],%99[^,],%[^\n]", &userId, username, password, email, rest) == 5) {
-            if (userId == id) {
-                // Escribir línea con nueva contraseña
-                fprintf(temp, "%d,%s,%s,%s,%s\n", userId, username, nuevaContrasena, email, rest);
-                encontrado = 1;
-            } else {
-                fputs(line, temp);
-            }
+    for (int i = 0; i < usuarios.tam; i++) {
+        if (i != indiceEncontrado) {
+            nuevaLista.datos[nuevaLista.tam] = usuarios.datos[i];
+            nuevaLista.tam++;
         }
     }
 
-    fclose(file);
-    fclose(temp);
-
-    remove("users.csv");
-    rename("temp.csv", "users.csv");
-
-    if (encontrado) {
-        printf("Contraseña del usuario %d actualizada.\n", id);
-    } else {
-        printf("Usuario con ID %d no encontrado.\n", id);
-    }
-}
-
-
-//Delete
-void borrarUsuario(int id){
-    FILE *file = fopen("users.csv", "r");
-    FILE *temp = fopen("temp.csv", "w");
-    char line[512];
-
-    if (!file || !temp) {
-        printf("No se pudo abrir el archivo.\n");
-        return;
+    if (escribirArchivo(nuevaLista)) {
+        printf("El usuario '%s' con ID: %s fue eliminado con exito.\n",
+               usuarioEliminar.fullName, usuarioEliminar.id);
     }
 
-    // Copiar el encabezado
-    if (fgets(line, sizeof(line), file)) {
-        fputs(line, temp);
-    }
-
-    int encontrado = 0;
-
-        // Leer cada línea y copiar solo si no coincide el ID
-    while (fgets(line, sizeof(line), file)) {
-        int userId;
-        if (sscanf(line, "%d,", &userId) == 1) {
-            if (userId != id) {
-                fputs(line, temp);
-            } else {
-                encontrado = 1;
-            }
-        }
-    }
-
-    fclose(file);
-    fclose(temp);
-
-    // Reemplazar el archivo original
-    remove("users.csv");
-    rename("temp.csv", "users.csv");
-
-    if (encontrado) {
-        printf("Usuario con ID %d eliminado correctamente.\n", id);
-    } else {
-        printf("Usuario con ID %d no encontrado.\n", id);
-    }
-}
-
-void actualizarUsuario(){
-    //menu
-    char opc;
-    printf("=== Menu: Actualizar usuario ===\n");
-    printf("1. Actualizar username\n");
-    printf("2. Actualizar email\n");
-    printf("3. Actualizar contrasena\n");
-    printf("x. Opcion anterior\n");
-    scanf(" %c", &opc);
-    
-    do {
-        switch (opc) {
-            case '1': int pId; tString new_usern;
-                    printf("Inserte nuevo username: ");
-                    scanf(" %s", &new_usern);
-                    printf("Inserte id: ");
-                    scanf("%d", &pId);
-                    actualizarUsername(pId, new_usern);
-                    break;
-            case '2': int pId1; tString new_email;
-                    printf("Inserte nuevo email: ");
-                    scanf(" %s", &new_email);
-                    printf("Inserte id: ");
-                    scanf("%d", &pId1);
-                    actualizarEmail(pId1, new_email);
-                    break;
-            case '3': int pId2; tString new_passwd;
-                    printf("Inserte nueva contrasena: ");
-                    scanf(" %s", &new_passwd);
-                    printf("Inserte id: ");
-                    scanf("%d", &pId2);
-                    actualizarContrasena(pId2, new_passwd);
-                    break;
-            default: printf("Opcion Invalida\n");
-                    break;
-        }
-    } while (opc != 'x');
+    free(usuarios.datos);
+    free(nuevaLista.datos);
 }

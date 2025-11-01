@@ -1,39 +1,32 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdbool.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <readline/readline.h>
+// Librerias
 #include "auth.h"
+#include "../functions.h"
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#ifdef _WIN32 //para compatibilidad con sistemas win + unix
-    #include <conio.h>
-    #include <windows.h>
+#ifdef _WIN32
+#include <conio.h>
+#include <windows.h>
 #else
-    #include <termios.h>
-    #include <unistd.h>
+#include <termios.h>
+#include <unistd.h>
 #endif
 
-#define MAX_INTENTOS 3
-#define MAX_LEN 64
-
-char username[MAX_LEN];
+// Variables globales
+char email[MAX_LEN];
 char password[MAX_LEN];
-
-const char correctUsername[] = "admin";
-const char correctPassword[] = "12345678";
 int contIntentos = 0;
-bool estaLoggeado;
+bool estaLoggeado = false;
+tUsuario usuarioActual; // Usuario que está loggeado
 
-//Definición
-void obtenerPassword(){
+void obtenerPassword() {
 #ifdef _WIN32
     int i = 0;
     int c;
-    printf("Contrasena: "); 
-    /* manejo de caracteres con fin de poner 
-    asteriscos en vez de mostrar contrasena */
-    while ((c = _getch()) != '\r' && i < MAX_LEN - 1) { //scanear contraseña verificando
+    printf("Contrasena: ");
+    while ((c = _getch()) != '\r' && i < MAX_LEN - 1) {
         if (c == '\b' || c == 63) {
             if (i > 0) {
                 i--;
@@ -44,56 +37,126 @@ void obtenerPassword(){
             putchar('*');
         }
     }
-    password[idx] = '\0';
+    password[i] = '\0';
     putchar('\n');
     fflush(stdin);
 #else
-    /* permite usar getpass() para ocultar input */
-    char *pw = getpass("Contrasena: ");
+    char* pw = getpass("Contrasena: ");
     if (pw) {
-        // copiar la contrasena al buffer
-        strncpy(password, pw, MAX_LEN-1);
-        password[MAX_LEN-1] = '\0';
+        strncpy(password, pw, MAX_LEN - 1);
+        password[MAX_LEN - 1] = '\0';
     } else {
         password[0] = '\0';
     }
-    //nueva linea para ser consistente
 #endif
 }
 
-
-void obtenerUser(){
-    printf("Usuario: ");
-    scanf("%s", username);
+void obtenerEmail() {
+    printf("Email: ");
+    scanf("%s", email);
 }
 
-void recorrerCSVdeLogin(){
-    FILE *file = fopen("users.csv", "r");
-    
-    //si no logra abrir archivo
+bool autenticarUsuario(const char* emailInput, const char* passwordInput, tUsuario* usuario) {
+    FILE* file = fopen(ARCHIVO, "r");
+
     if (!file) {
-        perror("Error al guardar el archivo");
-        return;
+        printf("Error: No se pudo abrir el archivo de usuarios.\n");
+        return false;
     }
-    //revisar
-    //fprintf(file, );
-}
 
-void login(){
-    printf("===Inicio de Sesión ===\n");
-    while (contIntentos < MAX_INTENTOS){
-        obtenerUser();
-        obtenerPassword();
+    char linea[MAXLINEA];
+    int esPrimeraLinea = 1;
 
-        // Revisar credenciales
-        if (strcmp(username, correctUsername) == 0 && strcmp(password, correctPassword) == 0) {
-            printf("Inicio de sesion exitoso. Bienvenido, %s.\n", username);
-            estaLoggeado = true;
-            break;
-        } else {
-            contIntentos++;
-            printf("Usuario o contrasena incorrecto. Intento %d de %d.\n", contIntentos, MAX_INTENTOS);
+    while (fgets(linea, MAXLINEA, file)) {
+        linea[strcspn(linea, "\n")] = '\0';
+
+        // Saltar encabezado
+        if (esPrimeraLinea) {
+            esPrimeraLinea = 0;
+            if (strstr(linea, "id,") != NULL) {
+                continue;
+            }
+        }
+
+        char lineaCopia[MAXLINEA];
+        strcpy(lineaCopia, linea);
+
+        tUsuario usuarioTemp;
+        parsearUsuario(lineaCopia, &usuarioTemp);
+
+        if (strcmp(usuarioTemp.email, emailInput) == 0 &&
+            strcmp(usuarioTemp.password, passwordInput) == 0) {
+            *usuario = usuarioTemp;
+            fclose(file);
+            return true;
         }
     }
+
+    fclose(file);
+    return false;
 }
 
+void login() {
+    printf("\n=== INICIO DE SESION ===\n");
+
+    while (contIntentos < MAX_INTENTOS) {
+        obtenerEmail();
+        obtenerPassword();
+
+        if (autenticarUsuario(email, password, &usuarioActual)) {
+            printf("\nInicio de sesion exitoso!\n");
+            printf("Bienvenido, %s\n", usuarioActual.fullName);
+            printf("Rol: %s\n", usuarioActual.role);
+            estaLoggeado = true;
+            contIntentos = 0;
+            return;
+        } else {
+            contIntentos++;
+            printf("\nEmail o contrasena incorrecto. Intento %d de %d.\n\n",
+                   contIntentos, MAX_INTENTOS);
+        }
+    }
+
+    if (contIntentos >= MAX_INTENTOS) {
+        printf("\nDemasiados intentos fallidos. Acceso bloqueado.\n");
+        exit(1); 
+    }
+}
+
+void logout() {
+    estaLoggeado = false;
+    memset(&usuarioActual, 0, sizeof(tUsuario));
+    printf("\nSesion cerrada exitosamente.\n");
+}
+
+bool esAdmin() {
+    return estaLoggeado && strcmp(usuarioActual.role, "ADMIN") == 0;
+}
+
+bool esInventoryManager() {
+    return estaLoggeado && strcmp(usuarioActual.role, "INVENTORY_MANAGER") == 0;
+}
+
+bool esCashier() {
+    return estaLoggeado && strcmp(usuarioActual.role, "CASHIER") == 0;
+}
+
+bool esClient() {
+    return estaLoggeado && strcmp(usuarioActual.role, "CLIENT") == 0;
+}
+
+bool tienePermiso(const char* rolRequerido) {
+    return estaLoggeado && strcmp(usuarioActual.role, rolRequerido) == 0;
+}
+
+// Obtener información del usuario logueado
+tUsuario* getUsuarioActual() {
+    if (estaLoggeado) {
+        return &usuarioActual;
+    }
+    return NULL;
+}
+
+bool isLoggedIn() {
+    return estaLoggeado;
+}

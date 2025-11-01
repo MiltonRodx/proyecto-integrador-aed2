@@ -6,34 +6,38 @@ void menuUsuarios() {
     char opc;
 
     do {
-        printf("\n=== Menu users: Manejo de Usuarios ===\n");
-        printf("1. Crear usuario\n");
-        printf("2. Leer usuario\n");
-        printf("3. Actualizar usuario\n");
-        printf("4. Borrar usuario\n");
-        printf("x. Opcion anterior\n");
+        printf("\n---| MENU DE USUARIOS |---\n");
+        printf("[1] Crear\n");
+        printf("[2] Listar\n");
+        printf("[3] Buscar\n");
+        printf("[4] Actualizar\n");
+        printf("[5] Borrar\n");
+        printf("[x] Opcion anterior\n");
         printf("Seleccione una opcion: ");
         scanf(" %c", &opc);
 
         switch (opc) {
-            case '1':
-                crearUsuario();
-                break;
-            case '2':
-                menuLectura();
-                break;
-            case '3':
-                actualizarUsuario();
-                break;
-            case '4':
-                borrarUsuario();
-                break;
-            case '5':
-                printf("Volviendo al menu anterior...\n");
-                break;
-            default:
-                printf("Opcion no valida.\n");
-                break;
+        case '1':
+            crearUsuario();
+            break;
+        case '2':
+            listarUsuarios();
+            break;
+        case '3':
+            menuBusquedaUsuarios();
+            break;
+        case '4':
+            actualizarUsuario();
+            break;
+        case '5':
+            eliminarUsuario();
+            break;
+        case 'x':
+            printf("Volviendo al menu anterior...\n");
+            break;
+        default:
+            printf("Opcion no valida.\n");
+            break;
         }
     } while (opc != 'x');
 }
