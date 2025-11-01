@@ -2,6 +2,7 @@
 #define UTILS_H
 
 void mayus(char*);
+void minus(char*);
 void obtenerFechaHora(char*);
 void formatearNombre(char*);
 void formatearCodigo(char*);

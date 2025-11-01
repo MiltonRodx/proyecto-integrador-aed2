@@ -1,2 +1,16 @@
-id,email,password,fullname,role,createdAt,updatedAt
-ADM4,admin@correo.com,admin123,Admin,ADMIN,2025-10-24 20:00,2025-10-24 20:00:00
+id,email,password,fullName,rol,createdAt,updatedAt
+ADM4,admin@correo.com,admin123,Admin,ADMIN,2025-10-24 20:00:00,2025-10-24 20:00:00
+INV1,juan.perez@correo.com,pass123,Juan Perez,INVENTORY_MANAGER,2025-10-25 10:30:00,2025-10-25 10:30:00
+CSH2,maria.gomez@correo.com,pass456,Maria Gomez,CASHIER,2025-10-25 11:45:00,2025-10-25 11:45:00
+CLI3,carlos.ruiz@correo.com,pass789,Carlos Ruiz,CLIENT,2025-10-26 09:15:00,2025-10-26 09:15:00
+CLI4,ana.martinez@correo.com,pass321,Ana Martinez,CLIENT,2025-10-26 14:20:00,2025-10-26 14:20:00
+ADM5,super.admin@correo.com,admin999,Super Admin,ADMIN,2025-10-27 08:00:00,2025-10-27 08:00:00
+INV6,pedro.lopez@correo.com,pass654,Pedro Lopez,INVENTORY_MANAGER,2025-10-27 16:30:00,2025-10-27 16:30:00
+CSH7,laura.fernandez@correo.com,pass555,Laura Fernandez,CASHIER,2025-10-28 10:00:00,2025-10-28 10:00:00
+CLI8,diego.sanchez@correo.com,pass888,Diego Sanchez,CLIENT,2025-10-28 13:45:00,2025-10-28 13:45:00
+CLI9,sofia.torres@correo.com,pass147,Sofia Torres,CLIENT,2025-10-29 11:20:00,2025-10-29 11:20:00
+CSH0,test.user@correo.com,test123,Test User,CASHIER,2025-10-30 15:00:00,2025-10-30 15:00:00
+INV2,developer@correo.com,dev456,Developer Test,INVENTORY_MANAGER,2025-10-31 09:30:00,2025-10-31 09:30:00
+CLI5,qa.tester@correo.com,qa789,QA Tester,CLIENT,2025-10-31 12:00:00,2025-10-31 12:00:00
+CSH8,user.demo@correo.com,demo123,Demo User,CASHIER,2025-11-01 08:15:00,2025-11-01 08:15:00
+CLI0,guest.account@correo.com,guest456,Guest Account,CLIENT,2025-11-01 14:30:00,2025-11-01 14:30:00

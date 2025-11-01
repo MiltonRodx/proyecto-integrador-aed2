@@ -11,6 +11,12 @@ void mayus(char* str) {
     }
 }
 
+void minus(char* str) {
+    for (int i = 0; i < strlen(str); i++) {
+        str[i] = tolower((unsigned char)str[i]);
+    }
+}
+
 void obtenerFechaHora(char* destino) {
     time_t t = time(NULL);
     struct tm* tm_info = localtime(&t);

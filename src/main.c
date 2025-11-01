@@ -65,10 +65,10 @@
 // }
 
 #include "stock/stock.h"
-#include "users/users.h"
 #include "users/auth/auth.h"
-#include <stdio.h>
+#include "users/users.h"
 #include <ctype.h>
+#include <stdio.h>
 
 void crearMenuPrincipal() {
     printf("\n===| MENU PRINCIPAL |===\n");
@@ -76,7 +76,7 @@ void crearMenuPrincipal() {
     printf("[2] Stock\n");
     printf("[3] Cash\n");
     printf("[x] Salir\n");
-    printf("Opcion: ");
+    printf("Seleccione una opcion: ");
 }
 
 int main() {
@@ -90,7 +90,7 @@ int main() {
         switch (opcion) {
         case '1':
             printf("Entrando al menú de usuarios...\n");
-            menuUsuarios(); 
+            menuUsuarios();
             break;
 
         case '2':
