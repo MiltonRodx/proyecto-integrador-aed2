@@ -6,4 +6,6 @@ void obtenerFechaHora(char*);
 void formatearNombre(char*);
 void formatearCodigo(char*);
 
+#include "createCode.h"
+
 #endif
