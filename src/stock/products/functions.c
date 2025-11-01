@@ -239,16 +239,21 @@ void crearProductos() {
 }
 
 static void imprimirCabecera() {
-    printf("\n%-4s %-25s %-20s %-8s %-12s %-22s %-20s %-20s\n",
+    printf("\n+------+---------------------------+----------------------+--------+--------------+------------------------+---------------------+---------------------+\n");
+    printf("| %-4s | %-25s | %-20s | %-6s | %-12s | %-22s | %-19s | %-19s |\n",
            "ID", "NOMBRE", "CODIGO", "STOCK", "PRECIO", "CATEGORIA", "CREADO", "ACTUALIZADO");
-    printf("-------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("+------+---------------------------+----------------------+--------+--------------+------------------------+---------------------+---------------------+\n");
 }
 
 static void imprimirLinea(tProducto producto) {
-    printf("%-4s %-25s %-20s %-8d $%-11.2f %-22s %-20s %-20s\n",
+    printf("| %-4s | %-25s | %-20s | %-6d | $%-11.2f | %-22s | %-19s | %-19s |\n",
            producto.id, producto.name, producto.code,
            producto.stock, producto.price,
            producto.category, producto.createdAt, producto.updatedAt);
+}
+
+static void imprimirPie() {
+    printf("+------+---------------------------+----------------------+--------+--------------+------------------------+---------------------+---------------------+\n");
 }
 
 void imprimirProductos(tLista productos) {
@@ -261,6 +266,7 @@ void imprimirProductos(tLista productos) {
     for (int i = 0; i < productos.tam; i++) {
         imprimirLinea(productos.datos[i]);
     }
+    imprimirPie();
     printf("\nTotal de productos: %d\n", productos.tam);
 }
 
@@ -295,6 +301,7 @@ void filtrarProductoPorId() {
     tString id;
 
     ingresarCampo("Ingrese el ID del producto: ", id);
+    mayus(id);
     if (!idExiste(id)) {
         printf("Error: El producto con el id: '%s' no existe.\n", id);
         return;
@@ -404,6 +411,7 @@ void filtrarProductoPorCategoria() {
             cont++;
         }
     }
+    imprimirPie();
 
     if (cont == 0) {
         printf("No se encontraron productos con la categoria '%s'.\n", categoria);
@@ -429,7 +437,7 @@ void filtrarProductoPorStock() {
             cont++;
         }
     }
-
+    imprimirPie();
     if (cont == 0) {
         printf("No se encontraron productos con el stock '%d'.\n", stock);
     }
