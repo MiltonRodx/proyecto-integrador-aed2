@@ -89,12 +89,12 @@ int main() {
 
         switch (opcion) {
         case '1':
-            printf("Entrando al menú de usuarios...\n");
+            printf("Entrando al menu de usuarios...\n");
             menuUsuarios();
             break;
 
         case '2':
-            printf("Entrando al menú de stock...\n");
+            printf("Entrando al menu de stock...\n");
             menuStock();
             break;
 

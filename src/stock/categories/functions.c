@@ -112,6 +112,21 @@ void crearCategorias() {
     } while (salir == 1);
 }
 
+static void mostrarCategoriasEnColumnas(tLista categorias) {
+    int columnas = 4;
+    int filas = (categorias.tam + columnas - 1) / columnas;
+
+    for (int i = 0; i < filas; i++) {
+        for (int j = 0; j < columnas; j++) {
+            int indice = i + j * filas;
+            if (indice < categorias.tam) {
+                printf("%02d. %-25s", indice + 1, categorias.datos[indice]);
+            }
+        }
+        printf("\n");
+    }
+}
+
 void leerCategorias() {
     tLista categorias = leerArchivo(ARCHIVO);
 
@@ -120,11 +135,8 @@ void leerCategorias() {
         return;
     }
 
-    printf("Categorias actuales:\n");
-
-    for (int i = 0; i < categorias.tam; i++) {
-        printf("%d. %s\n", i + 1, categorias.datos[i]);
-    }
+    printf("Categorias actuales:\n\n");
+    mostrarCategoriasEnColumnas(categorias);
 
     free(categorias.datos);
 }
@@ -138,7 +150,6 @@ void buscarCategorias(void) {
     }
 
     tString busqueda;
-
     ingresarCategoria(busqueda);
 
     int coincidencias[MAXLINEAS];
@@ -154,13 +165,21 @@ void buscarCategorias(void) {
         printf("No se encontraron categorias que contengan '%s'.\n", busqueda);
     } else {
         if (totalCoincidencias == 1)
-            printf("\nSe encontro 1 categoria que contiene '%s':\n", busqueda);
+            printf("\nSe encontro 1 categoria que contiene '%s':\n\n", busqueda);
         else
-            printf("\nSe encontraron %d categorias que contienen '%s':\n", totalCoincidencias, busqueda);
+            printf("\nSe encontraron %d categorias que contienen '%s':\n\n", totalCoincidencias, busqueda);
+
+        tLista resultados;
+        resultados.datos = (tString*)malloc(totalCoincidencias * sizeof(tString));
+        resultados.tam = totalCoincidencias;
 
         for (int i = 0; i < totalCoincidencias; i++) {
-            printf("%d. %s\n", i + 1, categorias.datos[coincidencias[i]]);
+            strcpy(resultados.datos[i], categorias.datos[coincidencias[i]]);
         }
+
+        mostrarCategoriasEnColumnas(resultados);
+
+        free(resultados.datos);
     }
 
     free(categorias.datos);

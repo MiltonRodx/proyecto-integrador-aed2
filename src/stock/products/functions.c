@@ -28,7 +28,7 @@ typedef struct {
     int tam;
 } tLista;
 
-void ingresarCampo(const char* mensaje, tString campo) {
+static void ingresarCampo(const char* mensaje, tString campo) {
     printf("%s", mensaje);
     fflush(stdin);
     scanf(" %49[^\n]", campo);
@@ -106,7 +106,7 @@ static tLista leerArchivo() {
     return lista;
 }
 
-int idExiste(tString valor) {
+static int idExiste(tString valor) {
     tLista productos = leerArchivo();
 
     if (!productos.datos) {
@@ -122,6 +122,12 @@ int idExiste(tString valor) {
 
     free(productos.datos);
     return 0;
+}
+
+static void generarIdUnica(char* id) {
+    do {
+        generateCode(id);
+    } while (idExiste(id));
 }
 
 int codigoExiste(tString valor) {
@@ -168,11 +174,7 @@ static int escribirArchivo(tLista productos) {
 void crearProducto() {
     tProducto producto;
 
-    ingresarCampo("Ingrese el ID del producto: ", producto.id);
-    if (idExiste(producto.id)) {
-        printf("Error: El ID '%s' ya existe.\n", producto.id);
-        return;
-    }
+    generarIdUnica(producto.id);
 
     ingresarCampo("Ingrese el nombre del producto: ", producto.name);
     formatearNombre(producto.name);
@@ -236,17 +238,22 @@ void crearProductos() {
     } while (salir == 1);
 }
 
-void imprimirCabecera() {
-    printf("\n%-4s %-25s %-20s %-8s %-12s %-22s %-20s %-20s\n",
+static void imprimirCabecera() {
+    printf("\n+------+---------------------------+----------------------+--------+--------------+------------------------+---------------------+---------------------+\n");
+    printf("| %-4s | %-25s | %-20s | %-6s | %-12s | %-22s | %-19s | %-19s |\n",
            "ID", "NOMBRE", "CODIGO", "STOCK", "PRECIO", "CATEGORIA", "CREADO", "ACTUALIZADO");
-    printf("-------------------------------------------------------------------------------------------------------------------------------\n");
+    printf("+------+---------------------------+----------------------+--------+--------------+------------------------+---------------------+---------------------+\n");
 }
 
-void imprimirLinea(tProducto producto) {
-    printf("%-4s %-25s %-20s %-8d $%-11.2f %-22s %-20s %-20s\n",
+static void imprimirLinea(tProducto producto) {
+    printf("| %-4s | %-25s | %-20s | %-6d | $%-11.2f | %-22s | %-19s | %-19s |\n",
            producto.id, producto.name, producto.code,
            producto.stock, producto.price,
            producto.category, producto.createdAt, producto.updatedAt);
+}
+
+static void imprimirPie() {
+    printf("+------+---------------------------+----------------------+--------+--------------+------------------------+---------------------+---------------------+\n");
 }
 
 void imprimirProductos(tLista productos) {
@@ -259,6 +266,7 @@ void imprimirProductos(tLista productos) {
     for (int i = 0; i < productos.tam; i++) {
         imprimirLinea(productos.datos[i]);
     }
+    imprimirPie();
     printf("\nTotal de productos: %d\n", productos.tam);
 }
 
@@ -293,6 +301,7 @@ void filtrarProductoPorId() {
     tString id;
 
     ingresarCampo("Ingrese el ID del producto: ", id);
+    mayus(id);
     if (!idExiste(id)) {
         printf("Error: El producto con el id: '%s' no existe.\n", id);
         return;
@@ -402,6 +411,7 @@ void filtrarProductoPorCategoria() {
             cont++;
         }
     }
+    imprimirPie();
 
     if (cont == 0) {
         printf("No se encontraron productos con la categoria '%s'.\n", categoria);
@@ -427,29 +437,29 @@ void filtrarProductoPorStock() {
             cont++;
         }
     }
-
+    imprimirPie();
     if (cont == 0) {
         printf("No se encontraron productos con el stock '%d'.\n", stock);
     }
 }
 
-void imprimirMenuBusqueda() {
+static void imprimirMenuBusquedaProductos() {
     printf("\n---| MENU DE BUSQUEDA |---\n");
     printf("[1] Por id\n");
     printf("[2] Por codigo\n");
     printf("[3] Por nombre\n");
     printf("[4] Por categoria\n");
     printf("[5] Por stock\n");
-    printf("[x] Volver al menu principal\n");
-    printf("Opcion: ");
+    printf("[x] Volver\n");
+    printf("Seleccione una opcion: ");
 }
 
-void menuBusqueda() {
+void menuBusquedaProductos() {
     char opcion;
     int resultado;
 
     do {
-        imprimirMenuBusqueda();
+        imprimirMenuBusquedaProductos();
         resultado = scanf(" %c", &opcion);
 
         if (resultado != 1) {
@@ -480,6 +490,17 @@ void menuBusqueda() {
     } while (opcion != 'x');
 }
 
+static void crearMenuEdicionProducto() {
+    printf("\n---| CAMPOS A EDITAR |---\n");
+    printf("[1] Nombre\n");
+    printf("[2] Stock\n");
+    printf("[3] Precio\n");
+    printf("[4] Categoria\n");
+    printf("[x] Guardar cambios\n");
+    printf("[c] Cancelar edicion\n");
+    printf("Seleccione una opcion: ");
+}
+
 void actualizarProducto() {
     tLista productos = leerArchivo();
 
@@ -490,7 +511,8 @@ void actualizarProducto() {
     }
 
     tString id;
-    ingresarCampo("Ingrese el id del producto a editar: ", id);
+    ingresarCampo("Ingrese el ID del producto a editar: ", id);
+    mayus(id);
 
     int indiceEncontrado = -1;
     for (int i = 0; i < productos.tam; i++) {
@@ -501,7 +523,7 @@ void actualizarProducto() {
     }
 
     if (indiceEncontrado == -1) {
-        printf("Error: El producto con ID '%s' no se encontró.\n", id);
+        printf("Error: El producto con ID '%s' no se encontro.\n", id);
         free(productos.datos);
         return;
     }
@@ -512,98 +534,124 @@ void actualizarProducto() {
     tProducto productoEditado = productos.datos[indiceEncontrado];
 
     char opcion;
+    int editado = 0;
     do {
-        printf("\n---| CAMPOS A EDITAR |---\n");
-        printf("[1] Nombre\n");
-        printf("[2] Stock\n");
-        printf("[3] Precio\n");
-        printf("[4] Categoria\n");
-        printf("[x] Terminar edicion\n");
-        printf("Opcion: ");
+        crearMenuEdicionProducto();
+
         if (scanf(" %c", &opcion) != 1) {
-            printf("Entrada invalida. Por favor ingrese un numero.\n");
+            printf("Entrada invalida.\n");
             fflush(stdin);
             continue;
         }
 
+        opcion = tolower(opcion);
+
         switch (opcion) {
-        case '1':
-            ingresarCampo("Ingrese el nuevo nombre del producto: ", productoEditado.name);
-            formatearNombre(productoEditado.name);
+        case '1': {
+            tString nuevoNombre;
+            do {
+                ingresarCampo("Ingrese el nuevo nombre del producto: ", nuevoNombre);
+                formatearNombre(nuevoNombre);
 
-            tString auxCod;
-            strcpy(auxCod, productoEditado.name);
-            formatearCodigo(auxCod);
+                tString auxCod;
+                strcpy(auxCod, nuevoNombre);
+                formatearCodigo(auxCod);
 
-            if (codigoExiste(auxCod) && strcmp(auxCod, productoEditado.code) != 0) {
-                printf("Error: El codigo '%s' ya existe. Intente con otro nombre.\n", auxCod);
-                strcpy(productoEditado.name, productos.datos[indiceEncontrado].name);
-            } else {
-                strcpy(productoEditado.code, auxCod);
-                printf("Nombre y codigo actualizados correctamente.\n");
-            }
+                if (codigoExiste(auxCod) && strcmp(auxCod, productoEditado.code) != 0) {
+                    printf("Error: El codigo '%s' ya existe. Intente con otro nombre.\n", auxCod);
+                } else {
+                    strcpy(productoEditado.name, nuevoNombre);
+                    strcpy(productoEditado.code, auxCod);
+                    printf("Nombre y codigo actualizados correctamente.\n");
+                    editado = 1;
+                    break;
+                }
+            } while (1);
             break;
+        }
 
-        case '2':
-            printf("Ingrese el nuevo stock: ");
+        case '2': {
             int nuevoStock;
+            printf("Ingrese el nuevo stock: ");
             if (scanf("%d", &nuevoStock) != 1 || nuevoStock < 0) {
                 printf("Error: Valor incorrecto.\n");
+                fflush(stdin);
             } else {
                 productoEditado.stock = nuevoStock;
                 printf("Stock actualizado correctamente.\n");
+                editado = 1;
             }
             break;
+        }
 
-        case '3':
-            printf("Ingrese el nuevo precio: ");
+        case '3': {
             float nuevoPrecio;
+            printf("Ingrese el nuevo precio: ");
             if (scanf("%f", &nuevoPrecio) != 1 || nuevoPrecio <= 0) {
                 printf("Error: Valor incorrecto.\n");
+                fflush(stdin);
             } else {
                 productoEditado.price = nuevoPrecio;
                 printf("Precio actualizado correctamente.\n");
+                editado = 1;
             }
             break;
+        }
 
-        case '4':
-            ingresarCampo("Ingrese la nueva categoria: ", productoEditado.category);
-            mayus(productoEditado.category);
-            if (!categoriaExiste(productoEditado.category)) {
-                printf("Error: La categoria '%s' no existe.\n", productoEditado.category);
-                strcpy(productoEditado.category, productos.datos[indiceEncontrado].category);
-            } else {
-                printf("Categoria actualizada correctamente.\n");
-            }
+        case '4': {
+            tString nuevaCategoria;
+            do {
+                ingresarCampo("Ingrese la nueva categoria: ", nuevaCategoria);
+                mayus(nuevaCategoria);
+                if (!categoriaExiste(nuevaCategoria)) {
+                    printf("Error: La categoria '%s' no existe.\n", nuevaCategoria);
+                } else {
+                    strcpy(productoEditado.category, nuevaCategoria);
+                    printf("Categoria actualizada correctamente.\n");
+                    editado = 1;
+                    break;
+                }
+            } while (1);
             break;
+        }
 
-        case '5':
+        case 'c':
+            printf("\nEdicion cancelada. No se guardaron cambios.\n");
+            free(productos.datos);
+            return;
+
+        case 'x':
             break;
 
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
         }
 
-        if (opcion != 5) {
+        if (opcion != 'x' && opcion != 'c') {
             printf("\nProducto actualizado (temporal):\n");
             imprimirProductoDetallado(productoEditado);
         }
 
     } while (opcion != 'x');
 
+    if (!editado) {
+        printf("\nNo se realizaron cambios.\n");
+        free(productos.datos);
+        return;
+    }
+
     obtenerFechaHora(productoEditado.updatedAt);
 
     productos.datos[indiceEncontrado] = productoEditado;
 
     if (escribirArchivo(productos)) {
-        printf("\nEl producto con id: %s fue actualizado exitosamente.\n", id);
+        printf("\nEl producto con ID: %s fue actualizado exitosamente.\n", id);
     } else {
         printf("\nError al guardar los cambios en el archivo.\n");
     }
 
     free(productos.datos);
 }
-
 void eliminarProducto() {
     tString id;
     ingresarCampo("Ingrese el ID del producto a eliminar: ", id);
