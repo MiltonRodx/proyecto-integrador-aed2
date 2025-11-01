@@ -11,7 +11,7 @@ void crearMenuCategorias() {
     printf("[5] Editar\n");
     printf("[6] Eliminar\n");
     printf("[x] Volver al menu principal\n");
-    printf("Opcion: ");
+    printf("Seleccione una opcion: ");
 }
 
 void menuCategorias() {

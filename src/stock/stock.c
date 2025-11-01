@@ -8,7 +8,7 @@ void crearMenuStock() {
     printf("[1] Categorias\n");
     printf("[2] Productos\n");
     printf("[x] Volver al menu principal\n");
-    printf("Opcion: ");
+    printf("Seleccione una opcion: ");
 }
 
 void menuStock() {

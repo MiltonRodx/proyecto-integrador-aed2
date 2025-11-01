@@ -28,7 +28,7 @@ typedef struct {
     int tam;
 } tLista;
 
-void ingresarCampo(const char* mensaje, tString campo) {
+static void ingresarCampo(const char* mensaje, tString campo) {
     printf("%s", mensaje);
     fflush(stdin);
     scanf(" %49[^\n]", campo);
@@ -106,7 +106,7 @@ static tLista leerArchivo() {
     return lista;
 }
 
-int idExiste(tString valor) {
+static int idExiste(tString valor) {
     tLista productos = leerArchivo();
 
     if (!productos.datos) {
@@ -236,13 +236,13 @@ void crearProductos() {
     } while (salir == 1);
 }
 
-void imprimirCabecera() {
+static void imprimirCabecera() {
     printf("\n%-4s %-25s %-20s %-8s %-12s %-22s %-20s %-20s\n",
            "ID", "NOMBRE", "CODIGO", "STOCK", "PRECIO", "CATEGORIA", "CREADO", "ACTUALIZADO");
     printf("-------------------------------------------------------------------------------------------------------------------------------\n");
 }
 
-void imprimirLinea(tProducto producto) {
+static void imprimirLinea(tProducto producto) {
     printf("%-4s %-25s %-20s %-8d $%-11.2f %-22s %-20s %-20s\n",
            producto.id, producto.name, producto.code,
            producto.stock, producto.price,
@@ -433,23 +433,23 @@ void filtrarProductoPorStock() {
     }
 }
 
-void imprimirMenuBusqueda() {
+static void imprimirMenuBusquedaProductos() {
     printf("\n---| MENU DE BUSQUEDA |---\n");
     printf("[1] Por id\n");
     printf("[2] Por codigo\n");
     printf("[3] Por nombre\n");
     printf("[4] Por categoria\n");
     printf("[5] Por stock\n");
-    printf("[x] Volver al menu principal\n");
-    printf("Opcion: ");
+    printf("[x] Volver\n");
+    printf("Seleccione una opcion: ");
 }
 
-void menuBusqueda() {
+void menuBusquedaProductos() {
     char opcion;
     int resultado;
 
     do {
-        imprimirMenuBusqueda();
+        imprimirMenuBusquedaProductos();
         resultado = scanf(" %c", &opcion);
 
         if (resultado != 1) {
@@ -501,7 +501,7 @@ void actualizarProducto() {
     }
 
     if (indiceEncontrado == -1) {
-        printf("Error: El producto con ID '%s' no se encontró.\n", id);
+        printf("Error: El producto con ID '%s' no se encontro.\n", id);
         free(productos.datos);
         return;
     }
@@ -519,7 +519,8 @@ void actualizarProducto() {
         printf("[3] Precio\n");
         printf("[4] Categoria\n");
         printf("[x] Terminar edicion\n");
-        printf("Opcion: ");
+        printf("Seleccione una opcion: ");
+        
         if (scanf(" %c", &opcion) != 1) {
             printf("Entrada invalida. Por favor ingrese un numero.\n");
             fflush(stdin);

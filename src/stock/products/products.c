@@ -9,8 +9,8 @@ void crearMenuProductos() {
     printf("[3] Buscar\n");
     printf("[4] Actualizar\n");
     printf("[5] Eliminar\n");
-    printf("[x] Volver al menu principal\n");
-    printf("Opcion: ");
+    printf("[x] Volver\n");
+    printf("Seleccione una opcion: ");
 }
 
 void menuProductos() {
@@ -36,7 +36,7 @@ void menuProductos() {
             obtenerProductos();
             break;
         case '3':
-            menuBusqueda();
+            menuBusquedaProductos();
             break;
         case '4':
             actualizarProducto();

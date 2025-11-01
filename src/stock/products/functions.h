@@ -3,7 +3,7 @@
 
 void crearProductos();
 void obtenerProductos();
-void menuBusqueda();
+void menuBusquedaProductos();
 void actualizarProducto();
 void eliminarProducto();
 
