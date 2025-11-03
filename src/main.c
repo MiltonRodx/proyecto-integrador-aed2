@@ -64,6 +64,7 @@
 //     return 0;
 // }
 
+#include "orders/orders.h"
 #include "stock/stock.h"
 #include "users/auth/auth.h"
 #include "users/users.h"
@@ -74,7 +75,7 @@ void crearMenuPrincipal() {
     printf("\n===| MENU PRINCIPAL |===\n");
     printf("[1] Users\n");
     printf("[2] Stock\n");
-    printf("[3] Cash\n");
+    printf("[3] Pedidos\n");
     printf("[x] Salir\n");
     printf("Seleccione una opcion: ");
 }
@@ -99,7 +100,8 @@ int main() {
             break;
 
         case '3':
-            printf("Menu de caja\n");
+            printf("Entrando al menu de pedidos...\n");
+            menuPedidos();
             break;
 
         case 'x':
