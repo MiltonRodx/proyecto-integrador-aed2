@@ -19,8 +19,7 @@ void menuPedidos() {
 
         switch (opcion) {
         case '1':
-            // menuCarrito();
-            printf("Menu carrito");
+            menuCarrito();
             break;
         default:
             printf("Opcion invalida. Intente nuevamente.\n");
