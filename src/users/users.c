@@ -1,5 +1,4 @@
 #include "users.h"
-#include "functions.h"
 #include <stdio.h>
 
 void menuUsuarios() {

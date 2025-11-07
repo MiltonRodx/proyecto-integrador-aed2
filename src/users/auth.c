@@ -1,6 +1,5 @@
 // Librerias
-#include "auth.h"
-#include "../functions.h"
+#include "users.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,9 +13,8 @@
 #include <unistd.h>
 #endif
 
-// Variables globales
-char email[MAX_LEN];
-char password[MAX_LEN];
+tString email;
+tString password;
 int contIntentos = 0;
 bool estaLoggeado = false;
 tUsuario usuarioActual; // Usuario que está loggeado
@@ -26,7 +24,7 @@ void obtenerPassword() {
   int i = 0;
   int c;
   printf("Contrasena: ");
-  while ((c = _getch()) != '\r' && i < MAX_LEN - 1) {
+  while ((c = _getch()) != '\r' && i < MAXPASS - 1) {
     if (c == '\b' || c == 63) {
       if (i > 0) {
         i--;
@@ -43,8 +41,8 @@ void obtenerPassword() {
 #else
   char* pw = getpass("Contrasena: ");
   if (pw) {
-    strncpy(password, pw, MAX_LEN - 1);
-    password[MAX_LEN - 1] = '\0';
+    strncpy(password, pw, MAXPASS - 1);
+    password[MAXPASS - 1] = '\0';
   } else {
     password[0] = '\0';
   }
@@ -57,7 +55,7 @@ void obtenerEmail() {
 }
 
 bool autenticarUsuario(const char* emailInput, const char* passwordInput, tUsuario* usuario) {
-  FILE* file = fopen(ARCHIVO, "r");
+  FILE* file = fopen(ARCHIVO_USUARIOS, "r");
 
   if (!file) {
     printf("Error: No se pudo abrir el archivo de usuarios.\n");
