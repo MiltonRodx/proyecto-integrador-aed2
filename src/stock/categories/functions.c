@@ -1,19 +1,9 @@
 #include "../../utils/utils.h"
+#include "categories.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define MAXCATEGORIA 30
-#define MAXLINEAS 100
-#define ARCHIVO "build/stock/categories/categories.txt"
-
-typedef char tString[MAXCATEGORIA];
-
-typedef struct {
-    tString* datos;
-    int tam;
-} tLista;
 
 static int escribirArchivo(const char* nombreArchivo, const char* linea) {
     FILE* archivo = fopen(nombreArchivo, "a");
@@ -27,13 +17,13 @@ static int escribirArchivo(const char* nombreArchivo, const char* linea) {
     return 1;
 }
 
-static tLista leerArchivo(const char* nombreArchivo) {
+static tListaCategorias leerArchivo(const char* nombreArchivo) {
     FILE* archivo = fopen(nombreArchivo, "r");
     if (!archivo) {
-        return (tLista){NULL, 0};
+        return (tListaCategorias){NULL, 0};
     }
 
-    tLista lista = {NULL, 0};
+    tListaCategorias lista = {NULL, 0};
     char linea[MAXCATEGORIA];
 
     while (fgets(linea, sizeof(linea), archivo)) {
@@ -43,7 +33,7 @@ static tLista leerArchivo(const char* nombreArchivo) {
         if (!lista.datos) {
             printf("Error al reasignar memoria");
             fclose(archivo);
-            return (tLista){NULL, 0};
+            return (tListaCategorias){NULL, 0};
         }
 
         strcpy(lista.datos[lista.tam], linea);
@@ -55,7 +45,7 @@ static tLista leerArchivo(const char* nombreArchivo) {
 }
 
 int categoriaExiste(const char* nuevaCategoria) {
-    tLista categorias = leerArchivo(ARCHIVO);
+    tListaCategorias categorias = leerArchivo(ARCHIVO_CATEGORIAS);
 
     for (int i = 0; i < categorias.tam; i++) {
         if (strcmp(categorias.datos[i], nuevaCategoria) == 0) {
@@ -96,7 +86,7 @@ void crearCategoria() {
         return;
     }
 
-    if (escribirArchivo(ARCHIVO, nuevaCategoria)) {
+    if (escribirArchivo(ARCHIVO_CATEGORIAS, nuevaCategoria)) {
         printf("Categoria '%s' agregada exitosamente.\n", nuevaCategoria);
     } else {
         printf("Error: No se pudo agregar la categoria.\n");
@@ -112,7 +102,7 @@ void crearCategorias() {
     } while (salir == 1);
 }
 
-static void mostrarCategoriasEnColumnas(tLista categorias) {
+static void mostrarCategoriasEnColumnas(tListaCategorias categorias) {
     int columnas = 4;
     int filas = (categorias.tam + columnas - 1) / columnas;
 
@@ -128,7 +118,7 @@ static void mostrarCategoriasEnColumnas(tLista categorias) {
 }
 
 void leerCategorias() {
-    tLista categorias = leerArchivo(ARCHIVO);
+    tListaCategorias categorias = leerArchivo(ARCHIVO_CATEGORIAS);
 
     if (!categorias.datos) {
         printf("No hay categorias en el archivo.\n");
@@ -142,7 +132,7 @@ void leerCategorias() {
 }
 
 void buscarCategorias(void) {
-    tLista categorias = leerArchivo(ARCHIVO);
+    tListaCategorias categorias = leerArchivo(ARCHIVO_CATEGORIAS);
 
     if (!categorias.datos) {
         printf("No hay categorias en el archivo.\n");
@@ -169,7 +159,7 @@ void buscarCategorias(void) {
         else
             printf("\nSe encontraron %d categorias que contienen '%s':\n\n", totalCoincidencias, busqueda);
 
-        tLista resultados;
+        tListaCategorias resultados;
         resultados.datos = (tString*)malloc(totalCoincidencias * sizeof(tString));
         resultados.tam = totalCoincidencias;
 
@@ -199,7 +189,7 @@ void filtrarCategoriaPorNombre() {
 }
 
 void editarCategoria() {
-    tLista categorias = leerArchivo(ARCHIVO);
+    tListaCategorias categorias = leerArchivo(ARCHIVO_CATEGORIAS);
 
     if (!categorias.datos) {
         printf("No hay categorias en el archivo.\n");
@@ -225,7 +215,7 @@ void editarCategoria() {
         return;
     }
 
-    FILE* archivo = fopen(ARCHIVO, "w");
+    FILE* archivo = fopen(ARCHIVO_CATEGORIAS, "w");
     if (!archivo) {
         printf("Error: No se pudo abrir el archivo para escribir.\n");
         free(categorias.datos);
@@ -256,14 +246,14 @@ void eliminarCategoria() {
         return;
     }
 
-    tLista categorias = leerArchivo(ARCHIVO);
+    tListaCategorias categorias = leerArchivo(ARCHIVO_CATEGORIAS);
 
     if (!categorias.datos) {
         printf("No hay categorias en el archivo.\n");
         return;
     }
 
-    FILE* archivo = fopen(ARCHIVO, "w");
+    FILE* archivo = fopen(ARCHIVO_CATEGORIAS, "w");
     if (!archivo) {
         printf("Error: No se pudo abrir el archivo para escribir.\n");
         free(categorias.datos);
