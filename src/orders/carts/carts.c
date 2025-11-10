@@ -81,6 +81,12 @@ void menuCarrito() {
         case '2':
             menuEliminarEnCarrito(&carrito);
             break;
+        case '3':
+            menuEditarCantProductoEnCarrito(&carrito);
+            break;
+        case '4':
+            //funcion de finalizar compra
+            break;
         case 'x':
             printf("Cancelando compra...\n");
             break;

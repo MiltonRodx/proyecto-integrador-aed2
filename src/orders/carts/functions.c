@@ -270,7 +270,7 @@ void menuEditarCantProductoEnCarrito(tCart* carrito){
     char opc;
 
     do {
-        crearMenuEditarProductoEnCarrito(); //desarrollar
+        crearMenuEditarProductoEnCarrito();
         scanf(" %c", &opc);
         opc = tolower(opc);
 
