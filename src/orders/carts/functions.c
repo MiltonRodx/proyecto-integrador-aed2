@@ -206,3 +206,84 @@ void menuEliminarEnCarrito(tCart* carrito) {
         }
     } while (opcion != 'x');
 }
+
+
+
+static void crearMenuEditarCantProductoEnCarrito(tCart* carrito){
+    printf("---| Editar cantidad de un producto |---\n");
+    printf("[1] Modificar por ID\n");
+    printf("[2] Modificar por nombre\n");
+    printf("[x] Volver al menu\n");
+    printf("Seleccione una opcion: ");
+}
+
+static void editarProductoEnCarritoPorID(tCart* carrito){
+    tId auxId;
+    int auxCant;
+    printf("Inserte id a buscar: ");
+    scanf(" %4[^\n]", &auxId);
+
+    tCartItem* actual = carrito->items;
+
+    while (actual != NULL) {
+        if (strcmp(actual->productId, auxId) == 0) {
+            printf("Producto encontrado, cantidad actual: %d\n", actual->quantity);
+            printf("Inserte nueva cantidad: ");
+            scanf(" %d", &auxCant);
+
+            actual->quantity = auxCant;
+            printf("Cantidad actualizada.\n");
+            return;
+        }
+        actual = actual->next;
+    }
+
+    printf("Producto no encontrado, inserte ID de nuevo.\n");
+}
+
+static void editarProductoEnCarritoPorNombre(tCart* carrito){
+    tString auxName;
+    int auxCant;
+    printf("Inserte id a buscar: ");
+    scanf(" %49[^\n]", &auxName);
+
+    tCartItem* actual = carrito->items;
+
+    while (actual != NULL) {
+        if (strcmp(actual->productId, auxName) == 0) {
+            printf("Producto encontrado, cantidad actual: %d\n", actual->quantity);
+            printf("Inserte nueva cantidad: ");
+            scanf(" %d", &auxCant);
+
+            actual->quantity = auxCant;
+            printf("Cantidad actualizada.\n");
+            return;
+        }
+        actual = actual->next;
+    }
+
+    printf("Producto no encontrado, inserte ID de nuevo.\n");
+}
+
+
+void menuEditarCantProductoEnCarrito(tCart* carrito){
+    char opc;
+
+    do {
+        crearMenuEditarProductoEnCarrito(); //desarrollar
+        scanf(" %c", &opc);
+        opc = tolower(opc);
+
+        switch (opc) {
+        case '1':
+            editarProductoEnCarritoPorID(carrito);
+            break;
+        case '2':
+            editarProductoEnCarritoPorNombre(carrito);
+            break;
+        default:
+            printf("Opcion invalida. Intente nuevamente.\n");
+        }
+
+    } while (opc != 'x');
+}
