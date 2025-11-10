@@ -21,6 +21,7 @@ typedef struct {
 void menuAgregarAlCarrito(tCart* carrito);
 void menuEliminarEnCarrito(tCart* carrito);
 void menuEditarCantProductoEnCarrito(tCart* carrito);
+void menuPasarPorCaja(tCart* carrito);
 
 void calcularTotalCarrito(tCart* carrito);
 void liberarCarrito(tCart* carrito);

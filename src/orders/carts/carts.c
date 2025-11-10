@@ -85,6 +85,7 @@ void menuCarrito() {
             menuEditarCantProductoEnCarrito(&carrito);
             break;
         case '4':
+            menuPasarPorCaja(&carrito);
             //funcion de finalizar compra
             break;
         case 'x':
