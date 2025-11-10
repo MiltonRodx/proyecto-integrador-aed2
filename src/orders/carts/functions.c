@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "../../stock/products/products.h"
 
 void calcularTotalCarrito(tCart* carrito) {
     float total = 0.0;
@@ -217,54 +218,138 @@ static void crearMenuEditarCantProductoEnCarrito(tCart* carrito){
     printf("Seleccione una opcion: ");
 }
 
-static void editarProductoEnCarritoPorID(tCart* carrito){
-    tId auxId;
-    int auxCant;
+static void editarProductoEnCarritoPorID(tCart* carrito) {
+    if (!carrito || !carrito->items) {
+        printf("No hay productos en el carrito\n");
+        return;
+    }
+
+    char auxId[64];
     printf("Inserte id a buscar: ");
-    scanf(" %4[^\n]", &auxId);
+    scanf(" %63[^\n]", auxId);
 
     tCartItem* actual = carrito->items;
-
     while (actual != NULL) {
         if (strcmp(actual->productId, auxId) == 0) {
             printf("Producto encontrado, cantidad actual: %d\n", actual->quantity);
-            printf("Inserte nueva cantidad: ");
-            scanf(" %d", &auxCant);
 
-            actual->quantity = auxCant;
-            printf("Cantidad actualizada.\n");
+            FILE* f = fopen("src/stock/products/products.csv", "r");
+            if (!f) {
+                printf("No se pudo abrir el archivo de productos.\n");
+                return;
+            }
+
+            char linea[512];
+            fgets(linea, sizeof(linea), f); // descartar cabecera
+
+            tProducto reg;
+            int stock = 0;
+            int encontrado = 0;
+
+            while (fgets(linea, sizeof(linea), f)) {
+                char id[128], name[128], code[128], category[128], created[128], updated[128];
+                float price;
+                int st;
+
+                sscanf(linea, "%[^,],%[^,],%[^,],%d,%f,%[^,],%[^,],%[^\n]",
+                       id, name, code, &st, &price, category, created, updated);
+
+                if (strcmp(id, auxId) == 0) {
+                    stock = st;
+                    encontrado = 1;
+                    break;
+                }
+            }
+
+            fclose(f);
+
+            if (!encontrado) {
+                printf("El producto no se encontró en el stock.\n");
+                return;
+            }
+
+            int nuevaCant;
+            do {
+                printf("Inserte nueva cantidad (stock disponible: %d): ", stock);
+                scanf("%d", &nuevaCant);
+            } while (nuevaCant > stock || nuevaCant < 0);
+
+            actual->quantity = nuevaCant;
+            printf("Cantidad actualizada a %d.\n", actual->quantity);
             return;
         }
+
         actual = actual->next;
     }
 
-    printf("Producto no encontrado, inserte ID de nuevo.\n");
+    printf("Producto no encontrado en el carrito.\n");
 }
 
-static void editarProductoEnCarritoPorNombre(tCart* carrito){
-    tString auxName;
-    int auxCant;
-    printf("Inserte id a buscar: ");
-    scanf(" %49[^\n]", &auxName);
+static void editarProductoEnCarritoPorNombre(tCart* carrito) {
+    if (!carrito || !carrito->items) {
+        printf("No hay productos en el carrito\n");
+        return;
+    }
+
+    char auxName[50];
+    printf("Inserte nombre a buscar: ");
+    scanf(" %49[^\n]", auxName);
 
     tCartItem* actual = carrito->items;
-
     while (actual != NULL) {
         if (strcmp(actual->productId, auxName) == 0) {
             printf("Producto encontrado, cantidad actual: %d\n", actual->quantity);
-            printf("Inserte nueva cantidad: ");
-            scanf(" %d", &auxCant);
 
-            actual->quantity = auxCant;
-            printf("Cantidad actualizada.\n");
+            FILE* f = fopen("src/stock/products/products.csv", "r");
+            if (!f) {
+                printf("No se pudo abrir el archivo de productos.\n");
+                return;
+            }
+
+            char linea[512];
+            fgets(linea, sizeof(linea), f); // descartar cabecera
+
+            int stock = 0;
+            int encontrado = 0;
+
+            while (fgets(linea, sizeof(linea), f)) {
+                char id[128], name[128], code[128], category[128], created[128], updated[128];
+                float price;
+                int st;
+
+                sscanf(linea, "%[^,],%[^,],%[^,],%d,%f,%[^,],%[^,],%[^\n]",
+                       id, name, code, &st, &price, category, created, updated);
+
+                if (strcmp(name, auxName) == 0) {
+                    stock = st;
+                    encontrado = 1;
+                    break;
+                }
+            }
+
+            fclose(f);
+
+            if (!encontrado) {
+                printf("El producto no se encontró en el stock.\n");
+                return;
+            }
+
+            int nuevaCant;
+            do {
+                printf("Inserte nueva cantidad (stock disponible: %d): ", stock);
+                scanf("%d", &nuevaCant);
+            } while (nuevaCant > stock || nuevaCant < 0);
+
+            actual->quantity = nuevaCant;
+            printf("Cantidad actualizada a %d.\n", actual->quantity);
             return;
         }
+
         actual = actual->next;
     }
 
-    printf("Producto no encontrado, inserte ID de nuevo.\n");
+    printf("Producto no encontrado en el carrito.\n");
 }
-
 
 void menuEditarCantProductoEnCarrito(tCart* carrito){
     char opc;
