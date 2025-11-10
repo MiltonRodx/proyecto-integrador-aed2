@@ -210,7 +210,7 @@ void menuEliminarEnCarrito(tCart* carrito) {
 
 
 
-static void crearMenuEditarCantProductoEnCarrito(tCart* carrito){
+static void crearMenuEditarCantProductoEnCarrito(){
     printf("---| Editar cantidad de un producto |---\n");
     printf("[1] Modificar por ID\n");
     printf("[2] Modificar por nombre\n");
@@ -242,7 +242,6 @@ static void editarProductoEnCarritoPorID(tCart* carrito) {
             char linea[512];
             fgets(linea, sizeof(linea), f); // descartar cabecera
 
-            tProducto reg;
             int stock = 0;
             int encontrado = 0;
 
@@ -274,7 +273,24 @@ static void editarProductoEnCarritoPorID(tCart* carrito) {
                 scanf("%d", &nuevaCant);
             } while (nuevaCant > stock || nuevaCant < 0);
 
+            /* Ajustar total usando la diferencia (usar oldQty antes de asignar nuevaCant) */
+            int oldQty = actual->quantity;
+            double unitPrice = actual->unitPrice; /* asumo double; si es float, también sirve */
+
+            carrito->total += (nuevaCant - oldQty) * unitPrice;
             actual->quantity = nuevaCant;
+
+            /* Recalculo completo del total para garantizar consistencia */
+            {
+                double recomputed = 0.0;
+                tCartItem* it = carrito->items;
+                while (it) {
+                    recomputed += ((double)it->quantity) * it->unitPrice;
+                    it = it->next;
+                }
+                carrito->total = recomputed;
+            }
+
             printf("Cantidad actualizada a %d.\n", actual->quantity);
             return;
         }
@@ -297,7 +313,8 @@ static void editarProductoEnCarritoPorNombre(tCart* carrito) {
 
     tCartItem* actual = carrito->items;
     while (actual != NULL) {
-        if (strcmp(actual->productId, auxName) == 0) {
+        /* Si en tu estructura guardas el nombre en otro campo, cámbialo aquí */
+        if (strcmp(actual->name, auxName) == 0) {
             printf("Producto encontrado, cantidad actual: %d\n", actual->quantity);
 
             FILE* f = fopen("src/stock/products/products.csv", "r");
@@ -340,11 +357,35 @@ static void editarProductoEnCarritoPorNombre(tCart* carrito) {
                 scanf("%d", &nuevaCant);
             } while (nuevaCant > stock || nuevaCant < 0);
 
+            /* --- DEBUG: ver valores antes de cambiar --- */
+            printf("[DEBUG] total antes: %.2f, oldQty: %d, unitPrice: %.2f\n",
+                   carrito->total, actual->quantity, actual->unitPrice);
+
+            /* ajustar total por diferencia (mantén este orden: usar oldQty antes de asignar nuevaCant) */
+            carrito->total += (nuevaCant - actual->quantity) * actual->unitPrice;
+
+            /* actualizar cantidad del item */
             actual->quantity = nuevaCant;
+
+            printf("[DEBUG] total despues ajuste: %.2f\n", carrito->total);
+
+            /* RECOMPUTAR TODO el total para garantizar consistencia */
+            {
+                double recomputed = 0.0;
+                tCartItem* it = carrito->items;
+                while (it) {
+                    recomputed += ((double)it->quantity) * it->unitPrice;
+                    it = it->next;
+                }
+                /* mostrar y asignar */
+                printf("[DEBUG] total recomputado: %.2f\n", recomputed);
+                carrito->total = recomputed;
+                printf("[INFO] Total final asignado: %.2f\n", carrito->total);
+            }
+
             printf("Cantidad actualizada a %d.\n", actual->quantity);
             return;
         }
-
         actual = actual->next;
     }
 
@@ -355,7 +396,7 @@ void menuEditarCantProductoEnCarrito(tCart* carrito){
     char opc;
 
     do {
-        crearMenuEditarProductoEnCarrito();
+        crearMenuEditarCantProductoEnCarrito();
         scanf(" %c", &opc);
         opc = tolower(opc);
 
@@ -372,3 +413,4 @@ void menuEditarCantProductoEnCarrito(tCart* carrito){
 
     } while (opc != 'x');
 }
+
