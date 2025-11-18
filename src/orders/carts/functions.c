@@ -551,19 +551,17 @@ void menuPasarPorCaja(tCart* carrito){
     
     char opc;
     
-    do {
-        crearMenuPasarPorCaja();
-        scanf(" %c", &opc);
-        opc = tolower(opc);
-        switch (opc) {
-            case '1':
-                confirmarOrdenCompra(carrito);    
-                break;
-            case 'x':
-                printf("Regresando a orden de compra...\n");
-
-        }
-    } while (opc != 'x');
+    crearMenuPasarPorCaja();
+    scanf(" %c", &opc);
+    opc = tolower(opc);
+    switch (opc) {
+        case '1':
+            confirmarOrdenCompra(carrito);
+            compraFinalizada = true;  
+            break;
+        case 'x':
+            printf("Regresando a orden de compra...\n");
+    }    
 }
 
 
