@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+bool compraFinalizada = false;
+
+
 static void imprimirCabecera() {
     printf("\n+------+---------------------------+--------+---------------+\n");
     printf("| %-4s | %-25s | %-6s | %-13s |\n",
@@ -81,13 +84,20 @@ void menuCarrito() {
         case '2':
             menuEliminarEnCarrito(&carrito);
             break;
+        case '3':
+            menuEditarCantProductoEnCarrito(&carrito);
+            break;
+        case '4':
+            menuPasarPorCaja(&carrito);
+            //funcion de finalizar compra
+            break;
         case 'x':
             printf("Cancelando compra...\n");
             break;
         default:
             printf("Opcion invalida.\n");
         }
-    } while (opcion != 'x');
+    } while (opcion != 'x' && !compraFinalizada);
     
     liberarCarrito(&carrito);
     printf("Carrito liberado. Volviendo al menu de pedidos...\n");
