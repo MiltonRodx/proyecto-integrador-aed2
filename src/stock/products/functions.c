@@ -1,32 +1,10 @@
-#include "../categories/functions.h"
 #include "../../utils/utils.h"
+#include "../categories/categories.h"
+#include "products.h"
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define MAXCAMPO 50
-#define MAXLINEA 300
-#define MAXREGISTROS 100
-#define ARCHIVO "build/stock/products/products.csv"
-
-typedef char tString[MAXCAMPO];
-
-typedef struct {
-    tString id;
-    tString name;
-    tString code;
-    int stock;
-    float price;
-    tString category;
-    tString createdAt;
-    tString updatedAt;
-} tProducto;
-
-typedef struct {
-    tProducto* datos;
-    int tam;
-} tLista;
 
 static void ingresarCampo(const char* mensaje, tString campo) {
     printf("%s", mensaje);
@@ -69,13 +47,13 @@ void parsearLinea(char* linea, tProducto* producto) {
         strcpy(producto->updatedAt, valor);
 }
 
-static tLista leerArchivo() {
-    FILE* archivo = fopen(ARCHIVO, "r");
+tListaProductos leerArchivoProductos() {
+    FILE* archivo = fopen(ARCHIVO_PRODUCTOS, "r");
     if (!archivo) {
-        return (tLista){NULL, 0};
+        return (tListaProductos){NULL, 0};
     }
 
-    tLista lista = {NULL, 0};
+    tListaProductos lista = {NULL, 0};
     char linea[MAXLINEA];
     int esPrimeraLinea = 1;
 
@@ -93,7 +71,7 @@ static tLista leerArchivo() {
         if (!lista.datos) {
             printf("Error al reasignar memoria\n");
             fclose(archivo);
-            return (tLista){NULL, 0};
+            return (tListaProductos){NULL, 0};
         }
 
         char lineaCopia[MAXLINEA];
@@ -106,8 +84,8 @@ static tLista leerArchivo() {
     return lista;
 }
 
-static int idExiste(tString valor) {
-    tLista productos = leerArchivo();
+int idProductoExiste(tString valor) {
+    tListaProductos productos = leerArchivoProductos();
 
     if (!productos.datos) {
         return 0;
@@ -127,11 +105,11 @@ static int idExiste(tString valor) {
 static void generarIdUnica(char* id) {
     do {
         generateCode(id);
-    } while (idExiste(id));
+    } while (idProductoExiste(id));
 }
 
 int codigoExiste(tString valor) {
-    tLista productos = leerArchivo();
+    tListaProductos productos = leerArchivoProductos();
 
     if (!productos.datos) {
         return 0;
@@ -148,8 +126,8 @@ int codigoExiste(tString valor) {
     return 0;
 }
 
-static int escribirArchivo(tLista productos) {
-    FILE* archivo = fopen(ARCHIVO, "w");
+static int escribirArchivo(tListaProductos productos) {
+    FILE* archivo = fopen(ARCHIVO_PRODUCTOS, "w");
     if (!archivo) {
         printf("Error: No se pudo abrir el archivo para escribir.\n");
         return 0;
@@ -212,7 +190,7 @@ void crearProducto() {
     obtenerFechaHora(producto.createdAt);
     strcpy(producto.updatedAt, producto.createdAt);
 
-    tLista productos = leerArchivo();
+    tListaProductos productos = leerArchivoProductos();
     productos.datos = realloc(productos.datos, (productos.tam + 1) * sizeof(tProducto));
     if (!productos.datos) {
         printf("Error al agregar el producto.\n");
@@ -256,7 +234,7 @@ static void imprimirPie() {
     printf("+------+---------------------------+----------------------+--------+--------------+------------------------+---------------------+---------------------+\n");
 }
 
-void imprimirProductos(tLista productos) {
+void imprimirProductos(tListaProductos productos) {
     if (productos.tam == 0) {
         printf("No hay productos para mostrar.\n");
         return;
@@ -271,7 +249,7 @@ void imprimirProductos(tLista productos) {
 }
 
 void obtenerProductos() {
-    tLista productos = leerArchivo();
+    tListaProductos productos = leerArchivoProductos();
 
     if (!productos.datos) {
         printf("Error: No se pudo abrir el archivo, tal vez no exista aun.\n");
@@ -295,14 +273,14 @@ void imprimirProductoDetallado(tProducto producto) {
 }
 
 void filtrarProductoPorId() {
-    tLista productos = leerArchivo();
+    tListaProductos productos = leerArchivoProductos();
     int cont = 0;
 
     tString id;
 
     ingresarCampo("Ingrese el ID del producto: ", id);
     mayus(id);
-    if (!idExiste(id)) {
+    if (!idProductoExiste(id)) {
         printf("Error: El producto con el id: '%s' no existe.\n", id);
         return;
     }
@@ -320,7 +298,7 @@ void filtrarProductoPorId() {
 }
 
 void filtrarProductoPorCodigo() {
-    tLista productos = leerArchivo();
+    tListaProductos productos = leerArchivoProductos();
     int cont = 0;
 
     tString codigo;
@@ -352,14 +330,14 @@ void buscarProductosPorNombre() {
         return;
     }
 
-    tLista productos = leerArchivo();
+    tListaProductos productos = leerArchivoProductos();
 
     if (!productos.datos) {
         printf("Error: No se pudo leer el archivo.\n");
         return;
     }
 
-    tLista resultado = {NULL, 0};
+    tListaProductos resultado = {NULL, 0};
 
     tString busquedaMayus;
     strcpy(busquedaMayus, busqueda);
@@ -393,7 +371,7 @@ void buscarProductosPorNombre() {
 }
 
 void filtrarProductoPorCategoria() {
-    tLista productos = leerArchivo();
+    tListaProductos productos = leerArchivoProductos();
     int cont = 0;
 
     tString categoria;
@@ -419,7 +397,7 @@ void filtrarProductoPorCategoria() {
 }
 
 void filtrarProductoPorStock() {
-    tLista productos = leerArchivo();
+    tListaProductos productos = leerArchivoProductos();
     int cont = 0;
 
     int stock;
@@ -496,7 +474,7 @@ static void crearMenuEdicionProducto() {
 }
 
 void actualizarProducto() {
-    tLista productos = leerArchivo();
+    tListaProductos productos = leerArchivoProductos();
 
     if (!productos.datos || productos.tam == 0) {
         printf("No hay productos para editar.\n");
@@ -645,7 +623,7 @@ void eliminarProducto() {
     tString id;
     ingresarCampo("Ingrese el ID del producto a eliminar: ", id);
 
-    tLista productos = leerArchivo();
+    tListaProductos productos = leerArchivoProductos();
 
     if (!productos.datos || productos.tam == 0) {
         printf("No hay productos para eliminar.\n");
@@ -669,7 +647,7 @@ void eliminarProducto() {
         return;
     }
 
-    tLista nuevaLista = {NULL, 0};
+    tListaProductos nuevaLista = {NULL, 0};
     nuevaLista.datos = malloc((productos.tam - 1) * sizeof(tProducto));
 
     if (!nuevaLista.datos && productos.tam > 1) {
@@ -691,4 +669,69 @@ void eliminarProducto() {
 
     free(productos.datos);
     free(nuevaLista.datos);
+}
+
+tProducto* buscarProductoPorId(tString id) {
+    tListaProductos productos = leerArchivoProductos();
+
+    if (!productos.datos || productos.tam == 0) {
+        return NULL;
+    }
+
+    tString idMayus;
+    strcpy(idMayus, id);
+    mayus(idMayus);
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, idMayus) == 0) {
+            tProducto* producto = malloc(sizeof(tProducto));
+            if (producto) {
+                *producto = productos.datos[i];
+            }
+            free(productos.datos);
+            return producto;
+        }
+    }
+
+    free(productos.datos);
+    return NULL;
+}
+
+int validarStockDisponible(tString id, int cantidad) {
+    tProducto* producto = buscarProductoPorId(id);
+
+    if (!producto) {
+        return 0;
+    }
+
+    int disponible = (producto->stock >= cantidad);
+    free(producto);
+
+    return disponible;
+}
+
+int actualizarStockProducto(tString id, int nuevoStock) {
+    tListaProductos productos = leerArchivoProductos();
+
+    if (!productos.datos || productos.tam == 0) {
+        return 0;
+    }
+
+    tString idMayus;
+    strcpy(idMayus, id);
+    mayus(idMayus);
+
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, idMayus) == 0) {
+            productos.datos[i].stock = nuevoStock;
+            obtenerFechaHora(productos.datos[i].updatedAt);
+            break;
+        }
+    }
+
+    int resultado = escribirArchivo(productos);
+    free(productos.datos);
+
+    return resultado;
 }

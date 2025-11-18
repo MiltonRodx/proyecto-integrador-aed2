@@ -1,5 +1,4 @@
 #include "categories.h"
-#include "functions.h"
 #include <stdio.h>
 #include <ctype.h>
 

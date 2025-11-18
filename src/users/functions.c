@@ -1,5 +1,3 @@
-// Librerias
-#include "functions.h"
 #include "../utils/utils.h"
 #include "users.h"
 #include <ctype.h>
@@ -9,10 +7,8 @@
 #include <string.h>
 #include <time.h>
 
-// Definición de variables
 tString roles[CANT_ROLE] = {"ADMIN", "INVENTORY_MANAGER", "CASHIER", "CLIENT"};
 
-// Funciones
 static void ingresarCampo(const char* mensaje, tString campo) {
     printf("%s", mensaje);
     fflush(stdin);
@@ -50,13 +46,13 @@ void parsearUsuario(char* linea, tUsuario* usuario) {
         strcpy(usuario->updatedAt, valor);
 }
 
-static tLista leerArchivo() {
-    FILE* archivo = fopen(ARCHIVO, "r");
+static tListaUsuarios leerArchivo() {
+    FILE* archivo = fopen(ARCHIVO_USUARIOS, "r");
     if (!archivo) {
-        return (tLista){NULL, 0};
+        return (tListaUsuarios){NULL, 0};
     }
 
-    tLista lista = {NULL, 0};
+    tListaUsuarios lista = {NULL, 0};
     char linea[MAXLINEA];
     int esPrimeraLinea = 1;
 
@@ -74,7 +70,7 @@ static tLista leerArchivo() {
         if (!lista.datos) {
             printf("Error al reasignar memoria\n");
             fclose(archivo);
-            return (tLista){NULL, 0};
+            return (tListaUsuarios){NULL, 0};
         }
 
         char lineaCopia[MAXLINEA];
@@ -88,7 +84,7 @@ static tLista leerArchivo() {
 }
 
 static int idExiste(tString valor) {
-    tLista usuarios = leerArchivo();
+    tListaUsuarios usuarios = leerArchivo();
 
     if (!usuarios.datos) {
         return 0;
@@ -112,7 +108,7 @@ void generarIdUnica(char* id) {
 }
 
 int emailExiste(tString valor) {
-    tLista usuarios = leerArchivo();
+    tListaUsuarios usuarios = leerArchivo();
 
     if (!usuarios.datos) {
         return 0;
@@ -129,8 +125,8 @@ int emailExiste(tString valor) {
     return 0;
 }
 
-static int escribirArchivo(tLista usuarios) {
-    FILE* archivo = fopen(ARCHIVO, "w");
+static int escribirArchivo(tListaUsuarios usuarios) {
+    FILE* archivo = fopen(ARCHIVO_USUARIOS, "w");
     if (!archivo) {
         printf("Error: No se pudo abrir el archivo para escribir.\n");
         return 0;
@@ -220,7 +216,7 @@ void crearUsuario() {
     obtenerFechaHora(usuario.createdAt);
     strcpy(usuario.updatedAt, usuario.createdAt);
 
-    tLista usuarios = leerArchivo();
+    tListaUsuarios usuarios = leerArchivo();
     usuarios.datos = realloc(usuarios.datos, (usuarios.tam + 1) * sizeof(tUsuario));
     if (!usuarios.datos) {
         printf("Error al agregar el usuario.\n");
@@ -264,7 +260,7 @@ static void imprimirPie() {
     printf("+------+----------------------------+--------------------------------+--------------------+---------------------+---------------------+\n");
 }
 
-void imprimirUsuarios(tLista usuarios) {
+void imprimirUsuarios(tListaUsuarios usuarios) {
     if (usuarios.tam == 0) {
         printf("No hay usuarios para mostrar.\n");
         return;
@@ -279,7 +275,7 @@ void imprimirUsuarios(tLista usuarios) {
 }
 
 void obtenerUsuarios() {
-    tLista usuarios = leerArchivo();
+    tListaUsuarios usuarios = leerArchivo();
 
     if (!usuarios.datos) {
         printf("Error: No se pudo abrir el archivo.\n");
@@ -302,7 +298,7 @@ void imprimirUsuarioDetallado(tUsuario usuario) {
 }
 
 void buscarUserPorID() {
-    tLista usuarios = leerArchivo();
+    tListaUsuarios usuarios = leerArchivo();
 
     if (!usuarios.datos) {
         printf("Error: No se pudo abrir el archivo.\n");
@@ -326,7 +322,7 @@ void buscarUserPorID() {
 }
 
 void buscarPorEmail() {
-    tLista usuarios = leerArchivo();
+    tListaUsuarios usuarios = leerArchivo();
 
     if (!usuarios.datos) {
         printf("Error: No se pudo abrir el archivo.\n");
@@ -358,14 +354,14 @@ void buscarPorNombre() {
         return;
     }
 
-    tLista usuarios = leerArchivo();
+    tListaUsuarios usuarios = leerArchivo();
 
     if (!usuarios.datos) {
         printf("Error: No se pudo leer el archivo.\n");
         return;
     }
 
-    tLista resultado = {NULL, 0};
+    tListaUsuarios resultado = {NULL, 0};
 
     tString busquedaMayus;
     strcpy(busquedaMayus, busqueda);
@@ -399,7 +395,7 @@ void buscarPorNombre() {
 }
 
 void listarPorRol() {
-    tLista usuarios = leerArchivo();
+    tListaUsuarios usuarios = leerArchivo();
 
     if (!usuarios.datos) {
         printf("Error: No se pudo abrir el archivo.\n");
@@ -512,7 +508,7 @@ static void crearMenuEdicionUsuario() {
 }
 
 void actualizarUsuario() {
-    tLista usuarios = leerArchivo();
+    tListaUsuarios usuarios = leerArchivo();
 
     if (!usuarios.datos || usuarios.tam == 0) {
         printf("No hay usuarios para editar.\n");
@@ -634,7 +630,7 @@ void eliminarUsuario() {
     ingresarCampo("Ingrese el ID del usuario a eliminar: ", id);
     mayus(id);
 
-    tLista usuarios = leerArchivo();
+    tListaUsuarios usuarios = leerArchivo();
 
     if (!usuarios.datos || usuarios.tam == 0) {
         printf("No hay usuarios para eliminar.\n");
@@ -658,7 +654,7 @@ void eliminarUsuario() {
         return;
     }
 
-    tLista nuevaLista = {NULL, 0};
+    tListaUsuarios nuevaLista = {NULL, 0};
     nuevaLista.datos = malloc((usuarios.tam - 1) * sizeof(tUsuario));
 
     if (!nuevaLista.datos && usuarios.tam > 1) {
