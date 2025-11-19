@@ -36,6 +36,7 @@ clean:
 
 # Ejecutar el programa
 run: $(BUILD_DIR)/$(TARGET)
-	./$(BUILD_DIR)/$(TARGET)
+	@cp -r users $(BUILD_DIR) 2>/dev/null || true
+	cd $(BUILD_DIR) && ./$(TARGET)
 
 .PHONY: clean run
