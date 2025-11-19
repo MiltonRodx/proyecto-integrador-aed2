@@ -5,7 +5,7 @@
 
 #define MAXLINEA 300
 #define MAXREGISTROS 100
-#define ARCHIVO_PRODUCTOS "build/stock/products/products.csv"
+#define ARCHIVO_PRODUCTOS "stock/products/products.csv"
 
 typedef struct {
     tString id;

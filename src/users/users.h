@@ -10,7 +10,7 @@
 #define MAX_USERS 200
 #define MAX_LINE 512
 #define MAXCAMPO 50
-#define ARCHIVO_USUARIOS "build/users/users.csv"
+#define ARCHIVO_USUARIOS "users/users.csv"
 #define CANT_ROLE 4
 
 typedef struct {

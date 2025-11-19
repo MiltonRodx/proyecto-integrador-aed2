@@ -5,7 +5,7 @@
 
 #define MAXLINEAS 100
 #define MAXCATEGORIA 100
-#define ARCHIVO_CATEGORIAS "build/stock/categories/categories.txt"
+#define ARCHIVO_CATEGORIAS "stock/categories/categories.txt"
 
 typedef struct {
     tString* datos;
