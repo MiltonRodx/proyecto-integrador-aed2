@@ -55,7 +55,7 @@ dkms.conf
 *.dwo
 
 # build
-build
+# build
 
 # config vscode
 .vscode
