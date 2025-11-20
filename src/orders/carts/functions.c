@@ -6,7 +6,18 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "../../stock/products/products.h"
+
+#ifdef _WIN32
+#include <direct.h>   // Para _mkdir en Windows
+#define MKDIR(path) _mkdir(path)
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
+#define MKDIR(path) mkdir(path, 0700)
+#endif
 
 void calcularTotalCarrito(tCart* carrito) {
     float total = 0.0;
@@ -234,7 +245,7 @@ static void editarProductoEnCarritoPorID(tCart* carrito) {
         if (strcmp(actual->productId, auxId) == 0) {
             printf("Producto encontrado, cantidad actual: %d\n", actual->quantity);
 
-            FILE* f = fopen("src/stock/products/products.csv", "r");
+            FILE* f = fopen("stock/products/products.csv", "r");
             if (!f) {
                 printf("No se pudo abrir el archivo de productos.\n");
                 return;
@@ -318,7 +329,7 @@ static void editarProductoEnCarritoPorNombre(tCart* carrito) {
         if (strcmp(actual->name, auxName) == 0) {
             printf("Producto encontrado, cantidad actual: %d\n", actual->quantity);
 
-            FILE* f = fopen("src/stock/products/products.csv", "r");
+            FILE* f = fopen("stock/products/products.csv", "r");
             if (!f) {
                 printf("No se pudo abrir el archivo de productos.\n");
                 return;
@@ -446,8 +457,8 @@ static void crearMenuPasarPorCaja(){
 static void restarStockAProductos(tCart* carrito) {
     if (!carrito) return;
 
-    FILE* fin = fopen("src/stock/products/products.csv", "r");
-    FILE* fout = fopen("src/stock/products/products.tmp", "w");
+    FILE* fin = fopen("stock/products/products.csv", "r");
+    FILE* fout = fopen("stock/products/products.tmp", "w");
     if (!fin || !fout) return;
 
     char linea[1024];
@@ -484,14 +495,18 @@ static void restarStockAProductos(tCart* carrito) {
     fclose(fin);
     fclose(fout);
 
-    remove("src/stock/products/products.csv");
-    rename("src/stock/products/products.tmp", "src/stock/products/products.csv");
+    remove("stock/products/products.csv");
+    rename("stock/products/products.tmp", "stock/products/products.csv");
 }
 
 static void guardarRegistroTemporalCarrito(tCart* carrito) {
     if (!carrito) return;
 
-    FILE* f = fopen("src/stock/purchases/carritos_comprados.csv", "a");
+    // Crear carpetas si no existen
+    MKDIR("stock");
+    MKDIR("stock/purchases");
+
+    FILE* f = fopen("stock/purchases/carritos_comprados.csv", "a");
     if (!f) return;
 
     /* Si el archivo está vacío, escribir la cabecera */
@@ -509,7 +524,7 @@ static void guardarRegistroTemporalCarrito(tCart* carrito) {
         it = it->next;
     }
 
-    /* Escribir el registro (usa un ID fijo o uno que tengas en tu struct) */
+    /* Escribir el registro */
     fprintf(f, "%s,%.2f,%s\n", carrito->id, carrito->total, items);
 
     fclose(f);
@@ -518,7 +533,11 @@ static void guardarRegistroTemporalCarrito(tCart* carrito) {
 static void guardarResumenCompraGeneral(tCart* carrito) {
     if (!carrito) return;
 
-    FILE* f = fopen("src/stock/purchases/resumen_compras.csv", "a");
+    // Crear carpetas si no existen (ignora errores si ya existen)
+    MKDIR("stock");
+    MKDIR("stock/purchases");
+
+    FILE* f = fopen("stock/purchases/resumen_compras.csv", "a");
     if (!f) return;
 
     /* Escribir cabecera si el archivo está vacío */
