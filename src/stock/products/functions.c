@@ -1,0 +1,737 @@
+#include "../../utils/utils.h"
+#include "../categories/categories.h"
+#include "products.h"
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static void ingresarCampo(const char* mensaje, tString campo) {
+    printf("%s", mensaje);
+    fflush(stdin);
+    scanf(" %49[^\n]", campo);
+}
+
+void parsearLinea(char* linea, tProducto* producto) {
+    char* valor = strtok(linea, ",");
+
+    if (valor)
+        strcpy(producto->id, valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(producto->name, valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(producto->code, valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        producto->stock = atoi(valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        producto->price = atof(valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(producto->category, valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(producto->createdAt, valor);
+
+    valor = strtok(NULL, ",");
+    if (valor)
+        strcpy(producto->updatedAt, valor);
+}
+
+tListaProductos leerArchivoProductos() {
+    FILE* archivo = fopen(ARCHIVO_PRODUCTOS, "r");
+    if (!archivo) {
+        return (tListaProductos){NULL, 0};
+    }
+
+    tListaProductos lista = {NULL, 0};
+    char linea[MAXLINEA];
+    int esPrimeraLinea = 1;
+
+    while (fgets(linea, MAXLINEA, archivo)) {
+        linea[strcspn(linea, "\n")] = '\0';
+
+        if (esPrimeraLinea) {
+            esPrimeraLinea = 0;
+            if (strstr(linea, "id,") != NULL) {
+                continue;
+            }
+        }
+
+        lista.datos = realloc(lista.datos, (lista.tam + 1) * sizeof(tProducto));
+        if (!lista.datos) {
+            printf("Error al reasignar memoria\n");
+            fclose(archivo);
+            return (tListaProductos){NULL, 0};
+        }
+
+        char lineaCopia[MAXLINEA];
+        strcpy(lineaCopia, linea);
+        parsearLinea(lineaCopia, &lista.datos[lista.tam]);
+        lista.tam++;
+    }
+
+    fclose(archivo);
+    return lista;
+}
+
+int idProductoExiste(tString valor) {
+    tListaProductos productos = leerArchivoProductos();
+
+    if (!productos.datos) {
+        return 0;
+    }
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, valor) == 0) {
+            free(productos.datos);
+            return 1;
+        }
+    }
+
+    free(productos.datos);
+    return 0;
+}
+
+static void generarIdUnica(char* id) {
+    do {
+        generateCode(id);
+    } while (idProductoExiste(id));
+}
+
+int codigoExiste(tString valor) {
+    tListaProductos productos = leerArchivoProductos();
+
+    if (!productos.datos) {
+        return 0;
+    }
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].code, valor) == 0) {
+            free(productos.datos);
+            return 1;
+        }
+    }
+
+    free(productos.datos);
+    return 0;
+}
+
+static int escribirArchivo(tListaProductos productos) {
+    FILE* archivo = fopen(ARCHIVO_PRODUCTOS, "w");
+    if (!archivo) {
+        printf("Error: No se pudo abrir el archivo para escribir.\n");
+        return 0;
+    }
+
+    for (int i = 0; i < productos.tam; i++) {
+        fprintf(archivo, "%s,%s,%s,%d,%.2f,%s,%s,%s\n",
+                productos.datos[i].id,
+                productos.datos[i].name,
+                productos.datos[i].code,
+                productos.datos[i].stock,
+                productos.datos[i].price,
+                productos.datos[i].category,
+                productos.datos[i].createdAt,
+                productos.datos[i].updatedAt);
+    }
+
+    fclose(archivo);
+    return 1;
+}
+
+void crearProducto() {
+    tProducto producto;
+
+    generarIdUnica(producto.id);
+
+    ingresarCampo("Ingrese el nombre del producto: ", producto.name);
+    formatearNombre(producto.name);
+
+    tString auxCod;
+    strcpy(auxCod, producto.name);
+    formatearCodigo(auxCod);
+    strcpy(producto.code, auxCod);
+
+    if (codigoExiste(producto.code)) {
+        printf("Error: El codigo '%s' ya existe.\n", producto.code);
+        return;
+    }
+
+    printf("Ingrese el stock: ");
+    if (scanf("%d", &producto.stock) != 1 || producto.stock < 0) {
+        printf("Error: Valor incorrecto.\n");
+        return;
+    }
+
+    printf("Ingrese el precio: ");
+    if (scanf("%f", &producto.price) != 1 || producto.price <= 0) {
+        printf("Error: Valor incorrecto.\n");
+        return;
+    }
+
+    ingresarCampo("Ingrese categoria: ", producto.category);
+    mayus(producto.category);
+
+    if (!categoriaExiste(producto.category)) {
+        printf("Error: La categoria '%s' no existe.\n", producto.category);
+        return;
+    }
+
+    obtenerFechaHora(producto.createdAt);
+    strcpy(producto.updatedAt, producto.createdAt);
+
+    tListaProductos productos = leerArchivoProductos();
+    productos.datos = realloc(productos.datos, (productos.tam + 1) * sizeof(tProducto));
+    if (!productos.datos) {
+        printf("Error al agregar el producto.\n");
+        return;
+    }
+
+    productos.datos[productos.tam] = producto;
+    productos.tam++;
+
+    if (escribirArchivo(productos)) {
+        printf("Producto '%s' agregado exitosamente.\n", producto.name);
+    }
+
+    free(productos.datos);
+}
+
+void crearProductos() {
+    int salir = 0;
+    do {
+        crearProducto();
+        printf("Desea agregar otro producto? 1-Si 2-No: ");
+        scanf("%d", &salir);
+    } while (salir == 1);
+}
+
+static void imprimirCabecera() {
+    printf("\n+------+---------------------------+----------------------+--------+--------------+------------------------+---------------------+---------------------+\n");
+    printf("| %-4s | %-25s | %-20s | %-6s | %-12s | %-22s | %-19s | %-19s |\n",
+           "ID", "NOMBRE", "CODIGO", "STOCK", "PRECIO", "CATEGORIA", "CREADO", "ACTUALIZADO");
+    printf("+------+---------------------------+----------------------+--------+--------------+------------------------+---------------------+---------------------+\n");
+}
+
+static void imprimirLinea(tProducto producto) {
+    printf("| %-4s | %-25s | %-20s | %-6d | $%-11.2f | %-22s | %-19s | %-19s |\n",
+           producto.id, producto.name, producto.code,
+           producto.stock, producto.price,
+           producto.category, producto.createdAt, producto.updatedAt);
+}
+
+static void imprimirPie() {
+    printf("+------+---------------------------+----------------------+--------+--------------+------------------------+---------------------+---------------------+\n");
+}
+
+void imprimirProductos(tListaProductos productos) {
+    if (productos.tam == 0) {
+        printf("No hay productos para mostrar.\n");
+        return;
+    }
+
+    imprimirCabecera();
+    for (int i = 0; i < productos.tam; i++) {
+        imprimirLinea(productos.datos[i]);
+    }
+    imprimirPie();
+    printf("\nTotal de productos: %d\n", productos.tam);
+}
+
+void obtenerProductos() {
+    tListaProductos productos = leerArchivoProductos();
+
+    if (!productos.datos) {
+        printf("Error: No se pudo abrir el archivo, tal vez no exista aun.\n");
+        return;
+    }
+
+    imprimirProductos(productos);
+    free(productos.datos);
+}
+
+void imprimirProductoDetallado(tProducto producto) {
+    printf("\nProducto encontrado:\n");
+    printf("ID: %s\n", producto.id);
+    printf("Nombre: %s\n", producto.name);
+    printf("Codigo: %s\n", producto.code);
+    printf("Stock: %d\n", producto.stock);
+    printf("Precio: $%.2f\n", producto.price);
+    printf("Categoria: %s\n", producto.category);
+    printf("Creado: %s\n", producto.createdAt);
+    printf("Actualizado: %s\n", producto.updatedAt);
+}
+
+void filtrarProductoPorId() {
+    tListaProductos productos = leerArchivoProductos();
+    int cont = 0;
+
+    tString id;
+
+    ingresarCampo("Ingrese el ID del producto: ", id);
+    mayus(id);
+    if (!idProductoExiste(id)) {
+        printf("Error: El producto con el id: '%s' no existe.\n", id);
+        return;
+    }
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, id) == 0) {
+            imprimirProductoDetallado(productos.datos[i]);
+            cont++;
+        }
+    }
+
+    if (cont == 0) {
+        printf("No se encontraron productos con el id '%s'.\n", id);
+    }
+}
+
+void filtrarProductoPorCodigo() {
+    tListaProductos productos = leerArchivoProductos();
+    int cont = 0;
+
+    tString codigo;
+
+    ingresarCampo("Ingrese el codigo del producto: ", codigo);
+    if (!codigoExiste(codigo)) {
+        printf("Error: El producto con el id '%s' no existe.\n", codigo);
+        return;
+    }
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].code, codigo) == 0) {
+            imprimirProductoDetallado(productos.datos[i]);
+            cont++;
+        }
+    }
+
+    if (cont == 0) {
+        printf("No se encontraron productos con el codigo '%s'.\n", codigo);
+    }
+}
+
+void buscarProductosPorNombre() {
+    tString busqueda;
+    ingresarCampo("Ingrese el producto a buscar: ", busqueda);
+
+    if (strlen(busqueda) == 0) {
+        printf("Error: La busqueda no puede estar vacia.\n");
+        return;
+    }
+
+    tListaProductos productos = leerArchivoProductos();
+
+    if (!productos.datos) {
+        printf("Error: No se pudo leer el archivo.\n");
+        return;
+    }
+
+    tListaProductos resultado = {NULL, 0};
+
+    tString busquedaMayus;
+    strcpy(busquedaMayus, busqueda);
+    mayus(busquedaMayus);
+
+    for (int i = 0; i < productos.tam; i++) {
+        tString nombreMayus;
+        strcpy(nombreMayus, productos.datos[i].name);
+        mayus(nombreMayus);
+
+        if (strstr(nombreMayus, busquedaMayus) != NULL) {
+            resultado.datos = realloc(resultado.datos, (resultado.tam + 1) * sizeof(tProducto));
+            if (!resultado.datos) {
+                printf("Error al asignar memoria.\n");
+                free(productos.datos);
+                return;
+            }
+            resultado.datos[resultado.tam] = productos.datos[i];
+            resultado.tam++;
+        }
+    }
+
+    if (resultado.tam == 0) {
+        printf("No se encontraron productos que contengan '%s'.\n", busqueda);
+    } else {
+        imprimirProductos(resultado);
+    }
+
+    free(productos.datos);
+    free(resultado.datos);
+}
+
+void filtrarProductoPorCategoria() {
+    tListaProductos productos = leerArchivoProductos();
+    int cont = 0;
+
+    tString categoria;
+
+    ingresarCampo("Ingrese la categoria del producto: ", categoria);
+    mayus(categoria);
+    if (!categoriaExiste(categoria)) {
+        printf("Error: La categoria: '%s' no existe.\n", categoria);
+        return;
+    }
+    imprimirCabecera();
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].category, categoria) == 0) {
+            imprimirLinea(productos.datos[i]);
+            cont++;
+        }
+    }
+    imprimirPie();
+
+    if (cont == 0) {
+        printf("No se encontraron productos con la categoria '%s'.\n", categoria);
+    }
+}
+
+void filtrarProductoPorStock() {
+    tListaProductos productos = leerArchivoProductos();
+    int cont = 0;
+
+    int stock;
+
+    printf("Ingrese el stock: ");
+    if (scanf("%d", &stock) != 1 || stock < 0) {
+        printf("Error: Valor incorrecto.\n");
+        return;
+    }
+
+    imprimirCabecera();
+    for (int i = 0; i < productos.tam; i++) {
+        if (productos.datos[i].stock == stock) {
+            imprimirLinea(productos.datos[i]);
+            cont++;
+        }
+    }
+    imprimirPie();
+    if (cont == 0) {
+        printf("No se encontraron productos con el stock '%d'.\n", stock);
+    }
+}
+
+static void imprimirMenuBusquedaProductos() {
+    printf("\n---| MENU DE BUSQUEDA |---\n");
+    printf("[1] Por id\n");
+    printf("[2] Por codigo\n");
+    printf("[3] Por nombre\n");
+    printf("[4] Por categoria\n");
+    printf("[5] Por stock\n");
+    printf("[x] Volver\n");
+    printf("Seleccione una opcion: ");
+}
+
+void menuBusquedaProductos() {
+    char opcion;
+
+    do {
+        imprimirMenuBusquedaProductos();
+        scanf(" %c", &opcion);
+        opcion = tolower(opcion);
+
+        switch (opcion) {
+        case '1':
+            filtrarProductoPorId();
+            break;
+        case '2':
+            filtrarProductoPorCodigo();
+            break;
+        case '3':
+            buscarProductosPorNombre();
+            break;
+        case '4':
+            filtrarProductoPorCategoria();
+            break;
+        case '5':
+            filtrarProductoPorStock();
+            break;
+        default:
+            printf("Opcion invalida. Intente nuevamente.\n");
+        }
+    } while (opcion != 'x');
+}
+
+static void crearMenuEdicionProducto() {
+    printf("\n---| CAMPOS A EDITAR |---\n");
+    printf("[1] Nombre\n");
+    printf("[2] Stock\n");
+    printf("[3] Precio\n");
+    printf("[4] Categoria\n");
+    printf("[x] Guardar cambios\n");
+    printf("[c] Cancelar edicion\n");
+    printf("Seleccione una opcion: ");
+}
+
+void actualizarProducto() {
+    tListaProductos productos = leerArchivoProductos();
+
+    if (!productos.datos || productos.tam == 0) {
+        printf("No hay productos para editar.\n");
+        free(productos.datos);
+        return;
+    }
+
+    tString id;
+    ingresarCampo("Ingrese el ID del producto a editar: ", id);
+    mayus(id);
+
+    int indiceEncontrado = -1;
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, id) == 0) {
+            indiceEncontrado = i;
+            break;
+        }
+    }
+
+    if (indiceEncontrado == -1) {
+        printf("Error: El producto con ID '%s' no se encontro.\n", id);
+        free(productos.datos);
+        return;
+    }
+
+    printf("\nProducto actual:\n");
+    imprimirProductoDetallado(productos.datos[indiceEncontrado]);
+
+    tProducto productoEditado = productos.datos[indiceEncontrado];
+
+    char opcion;
+    int editado = 0;
+    do {
+        crearMenuEdicionProducto();
+
+        scanf(" %c", &opcion);
+        opcion = tolower(opcion);
+
+        switch (opcion) {
+        case '1': {
+            tString nuevoNombre;
+            do {
+                ingresarCampo("Ingrese el nuevo nombre del producto: ", nuevoNombre);
+                formatearNombre(nuevoNombre);
+
+                tString auxCod;
+                strcpy(auxCod, nuevoNombre);
+                formatearCodigo(auxCod);
+
+                if (codigoExiste(auxCod) && strcmp(auxCod, productoEditado.code) != 0) {
+                    printf("Error: El codigo '%s' ya existe. Intente con otro nombre.\n", auxCod);
+                } else {
+                    strcpy(productoEditado.name, nuevoNombre);
+                    strcpy(productoEditado.code, auxCod);
+                    printf("Nombre y codigo actualizados correctamente.\n");
+                    editado = 1;
+                    break;
+                }
+            } while (1);
+            break;
+        }
+
+        case '2': {
+            int nuevoStock;
+            printf("Ingrese el nuevo stock: ");
+            if (scanf("%d", &nuevoStock) != 1 || nuevoStock < 0) {
+                printf("Error: Valor incorrecto.\n");
+                fflush(stdin);
+            } else {
+                productoEditado.stock = nuevoStock;
+                printf("Stock actualizado correctamente.\n");
+                editado = 1;
+            }
+            break;
+        }
+
+        case '3': {
+            float nuevoPrecio;
+            printf("Ingrese el nuevo precio: ");
+            if (scanf("%f", &nuevoPrecio) != 1 || nuevoPrecio <= 0) {
+                printf("Error: Valor incorrecto.\n");
+                fflush(stdin);
+            } else {
+                productoEditado.price = nuevoPrecio;
+                printf("Precio actualizado correctamente.\n");
+                editado = 1;
+            }
+            break;
+        }
+
+        case '4': {
+            tString nuevaCategoria;
+            do {
+                ingresarCampo("Ingrese la nueva categoria: ", nuevaCategoria);
+                mayus(nuevaCategoria);
+                if (!categoriaExiste(nuevaCategoria)) {
+                    printf("Error: La categoria '%s' no existe.\n", nuevaCategoria);
+                } else {
+                    strcpy(productoEditado.category, nuevaCategoria);
+                    printf("Categoria actualizada correctamente.\n");
+                    editado = 1;
+                    break;
+                }
+            } while (1);
+            break;
+        }
+
+        case 'c':
+            printf("\nEdicion cancelada. No se guardaron cambios.\n");
+            free(productos.datos);
+            return;
+
+        case 'x':
+            break;
+
+        default:
+            printf("Opcion invalida. Intente nuevamente.\n");
+        }
+
+        if (opcion != 'x' && opcion != 'c') {
+            printf("\nProducto actualizado (temporal):\n");
+            imprimirProductoDetallado(productoEditado);
+        }
+
+    } while (opcion != 'x');
+
+    if (!editado) {
+        printf("\nNo se realizaron cambios.\n");
+        free(productos.datos);
+        return;
+    }
+
+    obtenerFechaHora(productoEditado.updatedAt);
+
+    productos.datos[indiceEncontrado] = productoEditado;
+
+    if (escribirArchivo(productos)) {
+        printf("\nEl producto con ID: %s fue actualizado exitosamente.\n", id);
+    } else {
+        printf("\nError al guardar los cambios en el archivo.\n");
+    }
+
+    free(productos.datos);
+}
+void eliminarProducto() {
+    tString id;
+    ingresarCampo("Ingrese el ID del producto a eliminar: ", id);
+
+    tListaProductos productos = leerArchivoProductos();
+
+    if (!productos.datos || productos.tam == 0) {
+        printf("No hay productos para eliminar.\n");
+        return;
+    }
+
+    int indiceEncontrado = -1;
+    tProducto productoEliminar;
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, id) == 0) {
+            indiceEncontrado = i;
+            productoEliminar = productos.datos[i];
+            break;
+        }
+    }
+
+    if (indiceEncontrado == -1) {
+        printf("Error: El producto con id: %s no se encontro.\n", id);
+        free(productos.datos);
+        return;
+    }
+
+    tListaProductos nuevaLista = {NULL, 0};
+    nuevaLista.datos = malloc((productos.tam - 1) * sizeof(tProducto));
+
+    if (!nuevaLista.datos && productos.tam > 1) {
+        printf("Error de memoria.\n");
+        free(productos.datos);
+        return;
+    }
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (i != indiceEncontrado) {
+            nuevaLista.datos[nuevaLista.tam] = productos.datos[i];
+            nuevaLista.tam++;
+        }
+    }
+
+    if (escribirArchivo(nuevaLista)) {
+        printf("El producto con el id: %s, fue eliminado con exito.\n", productoEliminar.id);
+    }
+
+    free(productos.datos);
+    free(nuevaLista.datos);
+}
+
+tProducto* buscarProductoPorId(tString id) {
+    tListaProductos productos = leerArchivoProductos();
+
+    if (!productos.datos || productos.tam == 0) {
+        return NULL;
+    }
+
+    tString idMayus;
+    strcpy(idMayus, id);
+    mayus(idMayus);
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, idMayus) == 0) {
+            tProducto* producto = malloc(sizeof(tProducto));
+            if (producto) {
+                *producto = productos.datos[i];
+            }
+            free(productos.datos);
+            return producto;
+        }
+    }
+
+    free(productos.datos);
+    return NULL;
+}
+
+int validarStockDisponible(tString id, int cantidad) {
+    tProducto* producto = buscarProductoPorId(id);
+
+    if (!producto) {
+        return 0;
+    }
+
+    int disponible = (producto->stock >= cantidad);
+    free(producto);
+
+    return disponible;
+}
+
+int actualizarStockProducto(tString id, int nuevoStock) {
+    tListaProductos productos = leerArchivoProductos();
+
+    if (!productos.datos || productos.tam == 0) {
+        return 0;
+    }
+
+    tString idMayus;
+    strcpy(idMayus, id);
+    mayus(idMayus);
+
+
+    for (int i = 0; i < productos.tam; i++) {
+        if (strcmp(productos.datos[i].id, idMayus) == 0) {
+            productos.datos[i].stock = nuevoStock;
+            obtenerFechaHora(productos.datos[i].updatedAt);
+            break;
+        }
+    }
+
+    int resultado = escribirArchivo(productos);
+    free(productos.datos);
+
+    return resultado;
+}
