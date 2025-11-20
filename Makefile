@@ -1,4 +1,4 @@
-TARGET = program
+TARGET = sistema_gestion_ventas
 SRC_DIR = src
 INC_DIR = include
 BUILD_DIR = build
