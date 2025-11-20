@@ -21,9 +21,7 @@ Este proyecto desarrolla un **sistema modular en C** para la **gestión de usuar
 * **Algoritmos de búsqueda** optimizados
 * **Aplicación de línea de comandos**, ideal para entornos de bajos recursos
 
-![Demo GIF](https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif)
-
-*(Reemplaza este GIF por uno de tu sistema funcionando)*
+![Ejemplo GIF 2](images/example1.GIF)
 
 ---
 
@@ -73,8 +71,8 @@ make run
 | Función           | Imagen / GIF de ejemplo                      |
 | ----------------- | -------------------------------------------- |
 | Menú principal    | ![Menú principal](images/screenshot.png)     |
-| Gestión de ventas | ![Gestión de ventas](images/screenshot1.png) |
-| Inventario        | ![Inventario](images/screenshot2.png)        |
+| Inventario        | ![Inventario](images/screenshot1.png)        |
+| Carrito           | ![Carrito](images/screenshot2.png)           |
 | Ejemplo animado   | ![Ejemplo GIF](images/example.GIF)           |
 | Ejemplo animado 2 | ![Ejemplo GIF 2](images/example1.GIF)        |
 
