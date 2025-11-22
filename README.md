@@ -33,9 +33,9 @@ Este proyecto desarrolla un **sistema modular en C** para la **gestión de usuar
 | Datos                | ![Linked List](https://img.shields.io/badge/Listas_Enlazadas-FF6F61?style=for-the-badge)                                                                                            |
 | Persistencia         | ![CSV](https://img.shields.io/badge/Archivos-.txt/.csv-00BFFF?style=for-the-badge)                                                                                                  |
 | Compilación          | ![Makefile](https://img.shields.io/badge/Makefile-F05032?style=for-the-badge) ![GCC](https://img.shields.io/badge/GCC-10.3.0-yellow?style=for-the-badge\&logo=gcc\&logoColor=white) |
-| Control de versiones | ![Git](https://img.shields.io/badge/Git-FF6600?style=for-the-badge\&logo=git\&logoColor=white)                                                                                      |
+| Control de versiones | ![Git](https://img.shields.io/badge/Git-FF6600?style=for-the-badge&logo=git&logoColor=white) ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white) |                                                                                      |
 | Algoritmos           | ![Search](https://img.shields.io/badge/Algoritmos_de_B%C3%BAsqueda-4CAF50?style=for-the-badge\&logo=search\&logoColor=white)                                                        |
-
+| Flujo de trabajo     | ![Git Flow](https://img.shields.io/badge/Git_Flow-2684FF?style=for-the-badge&logo=git) |
 
 ---
 
@@ -61,6 +61,17 @@ make clean
 make
 make run
 ```
+
+---
+
+## 👤 Usuarios de prueba
+
+| Rol               | Correo                  | Contraseña |
+|-------------------|-------------------------|------------|
+| ADMIN             | admin@correo.com        | admin123   |
+| INVENTORY_MANAGER | juan.perez@correo.com   | pass123    |
+| CASHIER           | maria.gomez@correo.com  | pass456    |
+| CLIENT            | carlos.ruiz@correo.com  | pass789    |
 
 ---
 
