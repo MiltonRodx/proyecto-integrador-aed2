@@ -64,6 +64,17 @@ make run
 
 ---
 
+## 👤 Usuarios de prueba
+
+| Rol               | Correo                  | Contraseña |
+|-------------------|-------------------------|------------|
+| ADMIN             | admin@correo.com        | admin123   |
+| INVENTORY_MANAGER | juan.perez@correo.com   | pass123    |
+| CASHIER           | maria.gomez@correo.com  | pass456    |
+| CLIENT            | carlos.ruiz@correo.com  | pass789    |
+
+---
+
 ## 🖱 Uso
 
 *(Aquí se incluyen capturas de pantalla y GIFs del sistema en acción)*
@@ -75,17 +86,6 @@ make run
 | Carrito           | ![Carrito](images/screenshot2.png)           |
 | Ejemplo animado   | ![Ejemplo GIF](images/example.GIF)           |
 | Ejemplo animado 2 | ![Ejemplo GIF 2](images/example1.GIF)        |
-
----
-
-## 👤 Usuarios de prueba
-
-| Rol               | Correo                  | Contraseña |
-|-------------------|-------------------------|------------|
-| ADMIN             | admin@correo.com        | admin123   |
-| INVENTORY_MANAGER | juan.perez@correo.com   | pass123    |
-| CASHIER           | maria.gomez@correo.com  | pass456    |
-| CLIENT            | carlos.ruiz@correo.com  | pass789    |
 
 ---
 
